@@ -8,36 +8,36 @@
   // 技能注册
   "skills": {
     "vuln-mining": {
-      "path": ".agents/skills/vuln-mining/SKILL.md",
+      "path": "work/skills/vuln-mining/SKILL.md",
       "description": "漏洞挖掘核心技能 — SAST + LLM 融合扫描",
       "triggers": ["vuln", "vulnerability", "漏洞", "扫描"],
       "priority": "high"
     },
     "security-scanner": {
-      "path": ".agents/skills/security-scanner/SKILL.md",
+      "path": "work/skills/security-scanner/SKILL.md",
       "description": "安全扫描器 — 静态模式匹配",
       "triggers": ["scan", "sast", "扫描"],
       "dependencies": ["vuln-mining"]
     },
     "evidence-verifier": {
-      "path": ".agents/skills/evidence-verifier/SKILL.md",
+      "path": "work/skills/evidence-verifier/SKILL.md",
       "description": "证据验证器 — 反幻觉检查 + 证据链验证",
       "triggers": ["verify", "evidence", "验证"],
       "dependencies": ["vuln-mining"]
     },
     "anti-hallucination": {
-      "path": ".agents/skills/anti-hallucination/SKILL.md",
+      "path": "work/skills/anti-hallucination/SKILL.md",
       "description": "翻译/分析过程中的证据核验和幻觉防御",
       "triggers": ["anti-hallucination", "幻觉", "证据核验"],
       "auto_load": true
     },
     "status-dashboard": {
-      "path": ".agents/skills/status-dashboard/SKILL.md",
+      "path": "work/skills/status-dashboard/SKILL.md",
       "description": "扫描进度仪表盘",
       "triggers": ["status", "progress", "进度"]
     },
     "shared": {
-      "path": ".agents/skills/shared/SKILL.md",
+      "path": "work/skills/shared/SKILL.md",
       "description": "共享方法论",
       "auto_load": true
     }

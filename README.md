@@ -86,15 +86,16 @@ git checkout v2.11.0
 
 ```
 vuln-mining-tensorflow/
-├── .agents/skills/
+├── work/skills/
 │   ├── vuln-mining/        # 漏洞挖掘核心技能
 │   ├── security-scanner/   # 安全扫描器
 │   ├── evidence-verifier/  # 证据验证器
 │   ├── anti-hallucination/ # 幻觉防御
 │   ├── status-dashboard/   # 进度仪表盘
-│   └── shared/             # 共享方法论
+│   ├── shared/             # 共享方法论
+│   ├── superpowers/        # 通用开发技能
+│   └── openspec-*/         # 结构化变更管理
 ├── config/                 # Agent 配置
-├── work/skills/            # 执行技能
 ├── harness/                # 验证脚本
 ├── scripts/                # 初始化/报告脚本
 ├── docs/                   # 文档

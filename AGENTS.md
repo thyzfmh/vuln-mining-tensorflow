@@ -31,4 +31,4 @@
 
 - `work/skills/superpowers/` — general development skills (brainstorming, debugging, writing plans, etc.)
 - `work/skills/openspec-*/` — structured change management
-- `.agents/skills/anti-hallucination/` — evidence verification during vulnerability analysis
+- `work/skills/anti-hallucination/` — evidence verification during vulnerability analysis

@@ -185,7 +185,7 @@ After per-module scans, perform cross-module analysis:
 1. **Source Evidence**: Verify the exact file path and line number exist in the codebase
 2. **Trigger Path**: Confirm the vulnerability is reachable from an external input
 3. **AI-Generated PoC**: Have the LLM generate a test case or input that triggers the bug
-4. **Anti-Hallucination Check**: Run `.agents/skills/anti-hallucination/` checklist:
+4. **Anti-Hallucination Check**: Run `work/skills/anti-hallucination/` checklist:
    - Does the cited source code actually exist at the claimed location?
    - Does the trigger path actually exist in the call graph?
    - Is the claimed behavior verifiable from the source code alone?
