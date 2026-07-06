@@ -1,7 +1,5 @@
 /target
 /code/tensorflow
-/reports/*.log
-/reports/*.tmp
 .DS_Store
 *.pyc
 __pycache__
@@ -10,6 +8,6 @@ __pycache__
 # Runtime-generated files
 reports/*.log
 reports/*.md
-result/
+submission/
 acceptance-plan.yaml
 plans/scan-*.md

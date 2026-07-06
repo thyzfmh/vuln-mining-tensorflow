@@ -16,29 +16,26 @@
 ```mermaid
 graph TB
     Human[人类 T0启动 / T1升级 / T2验收]
-    Harness[Harness run-autonomous.sh]
-    Scanner[vuln-mining skill]
+    Harness[Harness Scripts]
+    Pipeline[vuln_mining_tf_blackbox]
     SAST[SAST 静态扫描]
     LLM[LLM 语义分析]
-    Evidence[evidence-verifier]
+    Hypothesis[假设生成]
+    TestGen[AI 测试生成]
+    Runtime[运行时验证]
     AntiHalluc[anti-hallucination]
-    Status[status-dashboard]
-    VulnList[vulnerability_list.md]
-    ChatLog[llm_chat_log.json]
-    VulnReport[vulnerability_report.md]
+    Sub[submission/]
 
     Human --> Harness
-    Harness --> Scanner
-    Scanner --> SAST
-    Scanner --> LLM
-    Scanner --> Evidence
-    Evidence --> AntiHalluc
-    Scanner --> Status
-    Scanner --> VulnList
-    Scanner --> ChatLog
-    Scanner --> VulnReport
-    AntiHalluc --> Scanner
-    Status --> Human
+    Harness --> Pipeline
+    Pipeline --> SAST
+    Pipeline --> LLM
+    LLM --> Hypothesis
+    Hypothesis --> TestGen
+    TestGen --> Runtime
+    Runtime --> AntiHalluc
+    Pipeline --> Sub
+    AntiHalluc --> Pipeline
 ```
 
 ## 竞赛交付入口
@@ -47,7 +44,7 @@ graph TB
 
 ```text
 INSTRUCTION.md
-work/skills/vuln-mining/SKILL.md
+work/skills/vuln_mining_tf_blackbox/prompt.md
 ```
 
 ## 快速开始
@@ -87,15 +84,25 @@ git checkout v2.11.0
 ```
 vuln-mining-tensorflow/
 ├── work/skills/
-│   ├── vuln-mining/        # 漏洞挖掘核心技能
-│   ├── security-scanner/   # 安全扫描器
-│   ├── evidence-verifier/  # 证据验证器
-│   ├── anti-hallucination/ # 幻觉防御
-│   ├── status-dashboard/   # 进度仪表盘
-│   ├── shared/             # 共享方法论
-│   ├── superpowers/        # 通用开发技能
-│   └── openspec-*/         # 结构化变更管理
-├── config/                 # Agent 配置
+│   ├── vuln_mining_tf_blackbox/  # 核心漏洞挖掘技能
+│   │   ├── skill.yaml           # 技能配置
+│   │   ├── prompt.md            # LLM 入口提示
+│   │   ├── pipeline.md          # 5步流水线
+│   │   ├── output_spec.md       # 输出规格
+│   │   └── verify/run_test.py   # 运行时验证脚本
+│   ├── anti-hallucination/      # 幻觉防御
+│   ├── evidence-verifier/       # 证据验证器
+│   ├── security-scanner/        # 安全扫描器
+│   ├── status-dashboard/        # 进度仪表盘
+│   ├── shared/                  # 共享方法论
+│   ├── superpowers/             # 通用开发技能
+│   └── openspec-*/              # 结构化变更管理
+├── submission/                   # 交付件输出
+│   ├── vulnerability_list.md
+│   ├── llm_chat_log.json
+│   ├── vulnerability_report.md
+│   └── verify/run_test.py
+├── config/                       # Agent 配置
 ├── harness/                # 验证脚本
 ├── scripts/                # 初始化/报告脚本
 ├── docs/                   # 文档
@@ -103,7 +110,6 @@ vuln-mining-tensorflow/
 ├── reports/                # 扫描报告
 ├── plans/                  # 扫描计划
 ├── code/                   # 目标代码 (tensorflow)
-├── result/                 # 最终交付件
 └── tests/                  # 测试
 ```
 

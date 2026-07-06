@@ -11,23 +11,27 @@ fi
 
 TODAY="$(date +%Y-%m-%d)"
 
-# Create directories
-mkdir -p reports plans result logs/trace
+mkdir -p reports plans submission/verify
 
-# Generate result deliverable stubs from templates
-if [ ! -f result/vulnerability_list.md ]; then
-  cp templates/vulnerability_list.template.md result/vulnerability_list.md
-  echo "Created result/vulnerability_list.md from template"
+# Generate submission deliverable stubs
+if [ ! -f submission/vulnerability_list.md ]; then
+  cp templates/vulnerability_list.template.md submission/vulnerability_list.md
+  echo "Created submission/vulnerability_list.md from template"
 fi
 
-if [ ! -f result/llm_chat_log.json ]; then
-  cp templates/llm_chat_log.template.json result/llm_chat_log.json
-  echo "Created result/llm_chat_log.json from template"
+if [ ! -f submission/llm_chat_log.json ]; then
+  cp templates/llm_chat_log.template.json submission/llm_chat_log.json
+  echo "Created submission/llm_chat_log.json from template"
 fi
 
-if [ ! -f result/vulnerability_report.md ]; then
-  cp templates/vulnerability_report.template.md result/vulnerability_report.md
-  echo "Created result/vulnerability_report.md from template"
+if [ ! -f submission/vulnerability_report.md ]; then
+  cp templates/vulnerability_report.template.md submission/vulnerability_report.md
+  echo "Created submission/vulnerability_report.md from template"
+fi
+
+if [ ! -f submission/verify/run_test.py ]; then
+  cp work/skills/vuln_mining_tf_blackbox/verify/run_test.py submission/verify/run_test.py
+  echo "Created submission/verify/run_test.py from skill template"
 fi
 
 # Generate acceptance-plan.yaml
@@ -49,7 +53,8 @@ requirements:
   no_version_hints: true
   no_cve_references: true
   evidence_required: true
-  ai_generated_poc: true
+  ai_generated_tests: true
+  runtime_verification: true
   complete_interaction_log: true
   min_vulnerabilities: 1
   min_chat_turns: 5
@@ -58,6 +63,8 @@ verification:
   primary_commands:
     - "./harness/verify_vulnerabilities.sh"
     - "./harness/final_verify.sh"
+  runtime_verification:
+    - "python3 submission/verify/run_test.py"
   black_box_check:
     - "No project name/version in LLM prompts"
     - "No CVE references in chat log"
@@ -65,12 +72,13 @@ verification:
   evidence_check:
     - "Source file path exists in codebase"
     - "Trigger path is reachable from external input"
-    - "PoC can demonstrate the vulnerability"
+    - "Runtime test can demonstrate the vulnerability"
 
 deliverables:
-  - "result/vulnerability_list.md — Complete vulnerability list with evidence"
-  - "result/llm_chat_log.json — Complete LLM interaction log (no edits)"
-  - "result/vulnerability_report.md — Detailed vulnerability audit report"
+  - "submission/vulnerability_list.md — Complete vulnerability list with evidence"
+  - "submission/llm_chat_log.json — Complete LLM interaction log (no edits)"
+  - "submission/vulnerability_report.md — Detailed vulnerability audit report"
+  - "submission/verify/run_test.py — AI-generated runtime verification script"
 EOF
 
 # Generate initial scan plan
@@ -89,13 +97,12 @@ Understand the target codebase and prepare for systematic vulnerability scanning
 4. Generate a concrete scan plan:
 
 \`\`\`bash
-./harness/plan_next_scan.sh scan-001 "SAST + LLM scan for input validation in kernel ops" "$TARGET_PATH/tensorflow/core/kernels/"
+./harness/plan_next_scan.sh scan-001 "Semantic analysis for input validation in kernel ops" "$TARGET_PATH/tensorflow/core/kernels/"
 \`\`\`
 
-5. Execute the scan following work/skills/vuln-mining/SKILL.md.
+5. Execute the scan following work/skills/vuln_mining_tf_blackbox/prompt.md.
 EOF
 
-# Make harness scripts executable
 chmod +x harness/*.sh
 
 echo ""
@@ -105,4 +112,4 @@ echo "Target: $TARGET_PATH"
 echo ""
 echo "Next:"
 echo "  ./harness/analyze_target.sh \"$TARGET_PATH\""
-echo "  ./harness/plan_next_scan.sh scan-001 \"SAST + LLM scan for input validation\" \"$TARGET_PATH/tensorflow/core/kernels/\""
+echo "  ./harness/plan_next_scan.sh scan-001 \"Semantic analysis for input validation\" \"$TARGET_PATH/tensorflow/core/kernels/\""

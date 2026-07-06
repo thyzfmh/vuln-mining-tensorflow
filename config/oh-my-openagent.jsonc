@@ -8,7 +8,7 @@
   // 技能注册
   "skills": {
     "vuln-mining": {
-      "path": "work/skills/vuln-mining/SKILL.md",
+      "path": "work/skills/vuln_mining_tf_blackbox/prompt.md",
       "description": "漏洞挖掘核心技能 — SAST + LLM 融合扫描",
       "triggers": ["vuln", "vulnerability", "漏洞", "扫描"],
       "priority": "high"

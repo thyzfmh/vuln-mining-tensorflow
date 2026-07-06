@@ -10,71 +10,68 @@ echo ""
 ERRORS=0
 WARNINGS=0
 
-# Check vulnerability_list.md exists
-if [ ! -f "result/vulnerability_list.md" ]; then
-  echo "ERROR: result/vulnerability_list.md not found" >&2
-  ERRORS=$((ERRORS + 1))
-else
-  # Count vulnerabilities
-  VULN_COUNT="$(grep -c '^## 漏洞 #' result/vulnerability_list.md 2>/dev/null || echo "0")"
+if [ -f "submission/vulnerability_list.md" ]; then
+  VULN_COUNT="$(grep -c '^## 漏洞 #' submission/vulnerability_list.md 2>/dev/null || echo "0")"
   echo "Vulnerabilities found: $VULN_COUNT"
 
-  # Check each vulnerability has required fields
-  VULN_NUM=0
-  while IFS= read -r line; do
-    if [[ "$line" == "## 漏洞 #"* ]]; then
-      VULN_NUM=$((VULN_NUM + 1))
-    fi
-  done < result/vulnerability_list.md
-
-  # Verify required sections
-  for SECTION in "漏洞类型" "严重级别" "问题源码路径" "成因简述" "与LLM交互中哪句提示词发现了bug" "为什么选择此提示词" "潜在业务危害"; do
-    if ! grep -q "$SECTION" result/vulnerability_list.md; then
+  for SECTION in "漏洞类型" "严重级别" "问题源码路径" "成因简述" "验证结果"; do
+    if ! grep -q "$SECTION" submission/vulnerability_list.md; then
       echo "WARNING: Missing section '$SECTION' in vulnerability_list.md" >&2
       WARNINGS=$((WARNINGS + 1))
     fi
   done
+else
+  echo "ERROR: submission/vulnerability_list.md not found" >&2
+  ERRORS=$((ERRORS + 1))
 fi
 
-# Check llm_chat_log.json exists and is valid JSON
-if [ ! -f "result/llm_chat_log.json" ]; then
-  echo "ERROR: result/llm_chat_log.json not found" >&2
-  ERRORS=$((ERRORS + 1))
-else
-  if ! python3 -c "import json; json.load(open('result/llm_chat_log.json'))" 2>/dev/null; then
+if [ -f "submission/llm_chat_log.json" ]; then
+  if ! python3 -c "import json; json.load(open('submission/llm_chat_log.json'))" 2>/dev/null; then
     echo "ERROR: llm_chat_log.json is not valid JSON" >&2
     ERRORS=$((ERRORS + 1))
   else
-    TURN_COUNT="$(python3 -c "import json; d=json.load(open('result/llm_chat_log.json')); print(len(d.get('chat_history', [])))" 2>/dev/null || echo "0")"
+    TURN_COUNT="$(python3 -c "import json; d=json.load(open('submission/llm_chat_log.json')); print(len(d.get('chat_history', [])))" 2>/dev/null || echo "0")"
     echo "Chat turns: $TURN_COUNT"
 
-    # Check for black-box compliance (no version hints)
-    if grep -qiE 'v2\.11|tensorflow.*2\.11|version.*2\.11' result/llm_chat_log.json 2>/dev/null; then
+    if grep -qiE 'v2\.11|tensorflow.*2\.11|version.*2\.11' submission/llm_chat_log.json 2>/dev/null; then
       echo "ERROR: Black-box violation — version hints found in llm_chat_log.json" >&2
       ERRORS=$((ERRORS + 1))
     fi
 
-    if grep -qiE 'CVE-[0-9]{4}-[0-9]+' result/llm_chat_log.json 2>/dev/null; then
+    if grep -qiE 'CVE-[0-9]{4}-[0-9]+' submission/llm_chat_log.json 2>/dev/null; then
       echo "ERROR: Black-box violation — CVE references found in llm_chat_log.json" >&2
       ERRORS=$((ERRORS + 1))
     fi
   fi
+else
+  echo "ERROR: submission/llm_chat_log.json not found" >&2
+  ERRORS=$((ERRORS + 1))
 fi
 
-# Check vulnerability_report.md exists
-if [ ! -f "result/vulnerability_report.md" ]; then
-  echo "ERROR: result/vulnerability_report.md not found" >&2
-  ERRORS=$((ERRORS + 1))
-else
-  for SECTION in "概要" "方法论" "漏洞详细分析" "修复建议"; do
-    if ! grep -q "$SECTION" result/vulnerability_report.md; then
-      echo "WARNING: Missing section '$SECTION' in vulnerability_report.md" >&2
+if [ -f "submission/vulnerability_report.md" ]; then
+  for SECTION in "黑盒\|black.box" "方法论\|methodology" "pipeline\|流程"; do
+    if ! grep -qi "$SECTION" submission/vulnerability_report.md; then
+      echo "WARNING: Missing section matching '$SECTION' in vulnerability_report.md" >&2
       WARNINGS=$((WARNINGS + 1))
     fi
   done
+else
+  echo "ERROR: submission/vulnerability_report.md not found" >&2
+  ERRORS=$((ERRORS + 1))
 fi
 
-# Summary
+if [ -f "submission/verify/run_test.py" ]; then
+  if ! python3 -c "import ast; ast.parse(open('submission/verify/run_test.py').read())" 2>/dev/null; then
+    echo "ERROR: verify/run_test.py has syntax errors" >&2
+    ERRORS=$((ERRORS + 1))
+  else
+    echo "verify/run_test.py: valid Python syntax"
+  fi
+else
+  echo "ERROR: submission/verify/run_test.py not found" >&2
+  ERRORS=$((ERRORS + 1))
+fi
+
 echo ""
 echo "=== Verification Summary ==="
 echo "Errors: $ERRORS"

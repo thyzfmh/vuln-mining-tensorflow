@@ -64,9 +64,10 @@ echo "Test 1: Init competition project..."
 init_out="$("$ROOT/scripts/init-vuln-competition.sh" "$FAKE_TF")"
 assert_contains "$init_out" "initialized"
 
-test -f "$ROOT/result/vulnerability_list.md" || fail "vulnerability_list.md missing after init"
-test -f "$ROOT/result/llm_chat_log.json" || fail "llm_chat_log.json missing after init"
-test -f "$ROOT/result/vulnerability_report.md" || fail "vulnerability_report.md missing after init"
+test -f "$ROOT/submission/vulnerability_list.md" || fail "vulnerability_list.md missing after init"
+test -f "$ROOT/submission/llm_chat_log.json" || fail "llm_chat_log.json missing after init"
+test -f "$ROOT/submission/vulnerability_report.md" || fail "vulnerability_report.md missing after init"
+test -f "$ROOT/submission/verify/run_test.py" || fail "verify/run_test.py missing after init"
 test -f "$ROOT/acceptance-plan.yaml" || fail "acceptance-plan.yaml missing after init"
 echo "  PASS"
 
@@ -110,7 +111,13 @@ echo "  PASS"
 # Test 7: Final verify
 echo "Test 7: Final verify..."
 final_out="$("$ROOT/harness/final_verify.sh" 2>&1 || true)"
-test -f "$ROOT/reports/final-report.md" || true  # May not exist if verification fails
+echo "  PASS"
+
+# Test 8: Skill files exist
+echo "Test 8: Skill files exist..."
+for F in skill.yaml prompt.md pipeline.md output_spec.md verify/run_test.py; do
+  test -f "$ROOT/work/skills/vuln_mining_tf_blackbox/$F" || fail "Missing skill file: $F"
+done
 echo "  PASS"
 
 echo ""
