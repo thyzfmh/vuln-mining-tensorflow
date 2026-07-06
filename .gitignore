@@ -5,9 +5,10 @@
 __pycache__
 .env
 
-# Runtime-generated files
+# Runtime-generated reports
 reports/*.log
 reports/*.md
+
 # Runtime-generated deliverables (created by init script)
 /vulnerability_list.md
 /llm_chat_log.json
