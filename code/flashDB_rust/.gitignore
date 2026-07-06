@@ -1,0 +1,9 @@
+/target
+/reports/*.log
+/reports/*.tmp
+.DS_Store
+*.dSYM
+oracle/oracle_kvdb
+oracle/oracle_kvdb_gc
+oracle/oracle_tsdb
+oracle/oracle_tsdb_multi

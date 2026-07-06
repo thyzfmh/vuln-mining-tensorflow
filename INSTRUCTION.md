@@ -1,10 +1,5 @@
 # AI 漏洞挖掘：运行入口
 
-## 目标
-
-- **目标代码**: `code/tensorflow` (C++)
-- **交付件**: `vulnerability_list.md`, `llm_chat_log.json`, `vulnerability_report.md`, `verify/run_test.py`
-
 ## 执行方式
 
 加载并执行 Skill：
@@ -13,15 +8,17 @@
 work/skills/vuln_mining_tf_blackbox/SKILL.md
 ```
 
-该 Skill 包含 5 步流水线的完整自主流程：
+按 SKILL.md 中的 8 步流水线依次执行，不中断，不提问，直到 `final_verify.sh` 通过。
 
-1. Code Semantic Analysis — 代码语义分析
-2. Hypothesis Generation — 漏洞假设生成
-3. AI Test Generation — AI 测试用例生成
-4. Runtime Verification — 运行时验证
-5. Evidence Collection — 证据收集
+## 交付件
 
-目标代码路径已固定，加载后按步骤执行，不中断，不提问，直到 `final_verify.sh` 通过。
+| 文件 | 说明 |
+|------|------|
+| `vulnerability_list.md` | 漏洞清单（含证据链） |
+| `llm_chat_log.json` | LLM 交互记录（不得编辑，90%可复现） |
+| `vulnerability_report.md` | 漏洞审查工程化报告 |
+| `verify/run_test.py` | AI 生成的运行时验证脚本 |
+| `result/output.md` | **作品运行成功的输出信息（必选）** |
 
 ## 核心规则
 
@@ -30,5 +27,15 @@ work/skills/vuln_mining_tf_blackbox/SKILL.md
 - 每个漏洞必须有源码证据和可复现的触发方式
 - 所有测试用例必须由 AI 生成
 - 所有漏洞必须通过运行时验证（`verify/run_test.py`）
+- **执行完成后必须将运行结果写入 `result/output.md`**
 - 验证不通过则立即修复，持续修复直到通过
-- 仅在以下情况升级给用户：源码无法获取、连续 3 轮扫描未发现新漏洞、发现零日漏洞需要决策
+
+## 完成条件
+
+全部满足才算完成：
+
+1. `final_verify.sh` 通过（exit code 0）
+2. `vulnerability_list.md` 有 ≥ 1 个运行时验证的漏洞
+3. `llm_chat_log.json` 有 ≥ 5 轮交互
+4. `result/output.md` 已更新执行结果
+5. 所有交付件无黑盒违规

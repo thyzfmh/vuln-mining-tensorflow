@@ -1,0 +1,19 @@
+[package]
+name = "flashdb_rust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "flashdb_rust"
+path = "src/lib.rs"
+
+[[bin]]
+name = "flashdb_rust"
+path = "src/main.rs"
+
+[dependencies]
+thiserror = "2"
+
+[dev-dependencies]
+tempfile = "3"
+proptest = "1"
