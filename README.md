@@ -24,7 +24,7 @@ graph TB
     TestGen[AI 测试生成]
     Runtime[运行时验证]
     AntiHalluc[anti-hallucination]
-    Sub[submission/]
+    Sub[./]
 
     Human --> Harness
     Harness --> Pipeline
@@ -97,7 +97,7 @@ vuln-mining-tensorflow/
 │   ├── shared/                  # 共享方法论
 │   ├── superpowers/             # 通用开发技能
 │   └── openspec-*/              # 结构化变更管理
-├── submission/                   # 交付件输出
+├── ./                   # 交付件输出
 │   ├── vulnerability_list.md
 │   ├── llm_chat_log.json
 │   ├── vulnerability_report.md

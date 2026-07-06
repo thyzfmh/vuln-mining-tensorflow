@@ -7,7 +7,7 @@ interaction: false
 entry: prompt.md
 
 output:
-  dir: submission
+  dir: .
 
 constraints:
   black_box: true

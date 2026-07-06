@@ -18,7 +18,7 @@ You must generate a complete competition submission in one run.
 
 ## Required outputs
 
-All outputs go into `submission/`:
+All outputs go into the project root:
 
 1. `vulnerability_list.md` — Complete vulnerability list with evidence chains
 2. `llm_chat_log.json` — Complete LLM interaction log (no edits, 90% reproducible)
@@ -50,10 +50,10 @@ Execute these steps in order:
 - Only vulnerabilities with runtime evidence are accepted
 
 ### Step 5: Evidence Collection
-- Record all findings in `submission/vulnerability_list.md`
-- Record all LLM interactions in `submission/llm_chat_log.json`
-- Generate `submission/vulnerability_report.md`
-- Generate `submission/verify/run_test.py` with all verified test cases
+- Record all findings in `vulnerability_list.md`
+- Record all LLM interactions in `llm_chat_log.json`
+- Generate `vulnerability_report.md`
+- Generate `verify/run_test.py` with all verified test cases
 
 ## Black-Box Constraints
 

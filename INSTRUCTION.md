@@ -4,7 +4,7 @@
 
 - **目标代码**: `code/tensorflow` (C++)
 - **交付件**: `vulnerability_list.md`, `llm_chat_log.json`, `vulnerability_report.md`, `verify/run_test.py`
-- **输出目录**: `submission/`
+- **输出目录**: `./`
 
 ## 执行方式
 

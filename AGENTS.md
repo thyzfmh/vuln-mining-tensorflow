@@ -6,7 +6,7 @@
 
 - **Target**: `code/tensorflow` (C++)
 - **Deliverables**: `vulnerability_list.md`, `llm_chat_log.json`, `vulnerability_report.md`, `verify/run_test.py`
-- **Output directory**: `submission/`
+- **Output directory**: `./`
 - **Do not stop** until `final_verify.sh` passes
 - **Do not ask the user questions** — make reasonable decisions autonomously
 - **Black-box standard**: never tell the AI which bugs exist, which version this is, or hint at known vulnerabilities

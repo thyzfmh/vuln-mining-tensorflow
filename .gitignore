@@ -8,6 +8,10 @@ __pycache__
 # Runtime-generated files
 reports/*.log
 reports/*.md
-submission/
+# Runtime-generated deliverables (created by init script)
+/vulnerability_list.md
+/llm_chat_log.json
+/vulnerability_report.md
+/verify/
 acceptance-plan.yaml
 plans/scan-*.md

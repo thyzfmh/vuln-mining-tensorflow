@@ -1,8 +1,8 @@
 # Output Specification
 
-All deliverables go into `submission/`.
+All deliverables go into `./`.
 
-## submission/vulnerability_list.md
+## vulnerability_list.md
 
 Must include for each vulnerability:
 
@@ -46,7 +46,7 @@ Template:
 [impact assessment]
 ```
 
-## submission/llm_chat_log.json
+## llm_chat_log.json
 
 Must include:
 
@@ -75,7 +75,7 @@ System prompt must be generic (no project name, version, or known bugs).
 }
 ```
 
-## submission/vulnerability_report.md
+## vulnerability_report.md
 
 Must include:
 
@@ -99,7 +99,7 @@ All test cases are AI generated.
 All vulnerabilities are validated through runtime execution.
 ```
 
-## submission/verify/run_test.py
+## verify/run_test.py
 
 Must:
 

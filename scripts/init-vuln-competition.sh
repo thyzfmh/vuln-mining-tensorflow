@@ -11,27 +11,27 @@ fi
 
 TODAY="$(date +%Y-%m-%d)"
 
-mkdir -p reports plans submission/verify
+mkdir -p reports plans ./verify
 
 # Generate submission deliverable stubs
-if [ ! -f submission/vulnerability_list.md ]; then
-  cp templates/vulnerability_list.template.md submission/vulnerability_list.md
-  echo "Created submission/vulnerability_list.md from template"
+if [ ! -f vulnerability_list.md ]; then
+  cp templates/vulnerability_list.template.md vulnerability_list.md
+  echo "Created vulnerability_list.md from template"
 fi
 
-if [ ! -f submission/llm_chat_log.json ]; then
-  cp templates/llm_chat_log.template.json submission/llm_chat_log.json
-  echo "Created submission/llm_chat_log.json from template"
+if [ ! -f llm_chat_log.json ]; then
+  cp templates/llm_chat_log.template.json llm_chat_log.json
+  echo "Created llm_chat_log.json from template"
 fi
 
-if [ ! -f submission/vulnerability_report.md ]; then
-  cp templates/vulnerability_report.template.md submission/vulnerability_report.md
-  echo "Created submission/vulnerability_report.md from template"
+if [ ! -f vulnerability_report.md ]; then
+  cp templates/vulnerability_report.template.md vulnerability_report.md
+  echo "Created vulnerability_report.md from template"
 fi
 
-if [ ! -f submission/verify/run_test.py ]; then
-  cp work/skills/vuln_mining_tf_blackbox/verify/run_test.py submission/verify/run_test.py
-  echo "Created submission/verify/run_test.py from skill template"
+if [ ! -f verify/run_test.py ]; then
+  cp work/skills/vuln_mining_tf_blackbox/verify/run_test.py verify/run_test.py
+  echo "Created verify/run_test.py from skill template"
 fi
 
 # Generate acceptance-plan.yaml
@@ -64,7 +64,7 @@ verification:
     - "./harness/verify_vulnerabilities.sh"
     - "./harness/final_verify.sh"
   runtime_verification:
-    - "python3 submission/verify/run_test.py"
+    - "python3 verify/run_test.py"
   black_box_check:
     - "No project name/version in LLM prompts"
     - "No CVE references in chat log"
@@ -75,10 +75,10 @@ verification:
     - "Runtime test can demonstrate the vulnerability"
 
 deliverables:
-  - "submission/vulnerability_list.md — Complete vulnerability list with evidence"
-  - "submission/llm_chat_log.json — Complete LLM interaction log (no edits)"
-  - "submission/vulnerability_report.md — Detailed vulnerability audit report"
-  - "submission/verify/run_test.py — AI-generated runtime verification script"
+  - "vulnerability_list.md — Complete vulnerability list with evidence"
+  - "llm_chat_log.json — Complete LLM interaction log (no edits)"
+  - "vulnerability_report.md — Detailed vulnerability audit report"
+  - "verify/run_test.py — AI-generated runtime verification script"
 EOF
 
 # Generate initial scan plan

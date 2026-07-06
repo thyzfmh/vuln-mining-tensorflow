@@ -34,15 +34,15 @@ This system performs black-box vulnerability discovery on a large C++ codebase u
 - Tests must be self-contained and executable without manual setup
 
 ### 6. Runtime Verification
-- Execute all generated tests via `python3 submission/verify/run_test.py`
+- Execute all generated tests via `python3 verify/run_test.py`
 - Capture: exit codes, stderr, exception traces, signal types (SIGFPE, SIGSEGV, etc.)
 - Only accept findings with runtime evidence (crash, exception, assertion failure)
 
 ### 7. Evidence Collection
-- Compile verified findings into `submission/vulnerability_list.md`
-- Record all LLM interactions into `submission/llm_chat_log.json`
-- Generate `submission/vulnerability_report.md`
-- Package all test cases into `submission/verify/run_test.py`
+- Compile verified findings into `vulnerability_list.md`
+- Record all LLM interactions into `llm_chat_log.json`
+- Generate `vulnerability_report.md`
+- Package all test cases into `verify/run_test.py`
 
 ## Constraints
 
