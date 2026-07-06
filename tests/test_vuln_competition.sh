@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# test_vuln_competition.sh — test the harness scripts work correctly
+# test_vuln_competition.sh — test the skill scripts work correctly
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SK="$ROOT/work/skills/vuln_mining_tf_blackbox"
 
 fail() {
   echo "FAIL: $*" >&2
@@ -61,7 +62,7 @@ EOF
 
 # Test 1: Init
 echo "Test 1: Init competition project..."
-init_out="$("$ROOT/scripts/init-vuln-competition.sh" "$FAKE_TF")"
+init_out="$("$SK/scripts/init-vuln-competition.sh" "$FAKE_TF")"
 assert_contains "$init_out" "initialized"
 
 test -f "$ROOT/vulnerability_list.md" || fail "vulnerability_list.md missing after init"
@@ -73,14 +74,14 @@ echo "  PASS"
 
 # Test 2: Analyze
 echo "Test 2: Analyze target..."
-analyze_out="$("$ROOT/harness/analyze_target.sh" "$FAKE_TF")"
+analyze_out="$("$SK/scripts/analyze_target.sh" "$FAKE_TF")"
 assert_contains "$analyze_out" "source-inventory"
 test -f "$ROOT/reports/source-inventory.md" || fail "source-inventory.md missing"
 echo "  PASS"
 
 # Test 3: Plan
 echo "Test 3: Plan next scan..."
-plan_out="$("$ROOT/harness/plan_next_scan.sh" scan-001 "Test scan" "tensorflow/core/kernels/")"
+plan_out="$("$SK/scripts/plan_next_scan.sh" scan-001 "Test scan" "tensorflow/core/kernels/")"
 assert_contains "$plan_out" "plans/scan-001.md"
 test -f "$ROOT/plans/scan-001.md" || fail "scan-001.md missing"
 plan_content="$(cat "$ROOT/plans/scan-001.md")"
@@ -90,33 +91,39 @@ echo "  PASS"
 
 # Test 4: SAST scan
 echo "Test 4: SAST scan..."
-sast_out="$("$ROOT/harness/scan_sast.sh" "$FAKE_TF")"
+sast_out="$("$SK/scripts/scan_sast.sh" "$FAKE_TF")"
 assert_contains "$sast_out" "SAST"
 test -f "$ROOT/reports/sast-scan-report.md" || fail "sast-scan-report.md missing"
 echo "  PASS"
 
 # Test 5: LLM scan framework
 echo "Test 5: LLM scan framework..."
-llm_out="$("$ROOT/harness/scan_llm.sh" "$FAKE_TF")"
+llm_out="$("$SK/scripts/scan_llm.sh" "$FAKE_TF")"
 assert_contains "$llm_out" "LLM"
 test -f "$ROOT/reports/llm-scan-report.md" || fail "llm-scan-report.md missing"
 echo "  PASS"
 
 # Test 6: Verify vulnerabilities
 echo "Test 6: Verify vulnerabilities..."
-verify_out="$("$ROOT/harness/verify_vulnerabilities.sh" 2>&1 || true)"
+verify_out="$("$SK/scripts/verify_vulnerabilities.sh" 2>&1 || true)"
 test -f "$ROOT/reports/vuln-verification.md" || fail "vuln-verification.md missing"
 echo "  PASS"
 
 # Test 7: Final verify
 echo "Test 7: Final verify..."
-final_out="$("$ROOT/harness/final_verify.sh" 2>&1 || true)"
+final_out="$("$SK/scripts/final_verify.sh" 2>&1 || true)"
 echo "  PASS"
 
 # Test 8: Skill files exist
 echo "Test 8: Skill files exist..."
 for F in skill.yaml prompt.md pipeline.md output_spec.md verify/run_test.py; do
-  test -f "$ROOT/work/skills/vuln_mining_tf_blackbox/$F" || fail "Missing skill file: $F"
+  test -f "$SK/$F" || fail "Missing skill file: $F"
+done
+for F in analyze_target.sh final_verify.sh init-vuln-competition.sh plan_next_scan.sh scan_llm.sh scan_sast.sh verify_vulnerabilities.sh; do
+  test -f "$SK/scripts/$F" || fail "Missing script: $F"
+done
+for F in llm_chat_log.template.json vulnerability_list.template.md vulnerability_report.template.md; do
+  test -f "$SK/templates/$F" || fail "Missing template: $F"
 done
 echo "  PASS"
 

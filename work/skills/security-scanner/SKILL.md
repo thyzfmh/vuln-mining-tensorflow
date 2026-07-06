@@ -21,7 +21,7 @@ Performs regex-based pattern matching for common vulnerability patterns in C++ c
 ## Usage
 
 ```bash
-./harness/scan_sast.sh code/tensorflow
+./work/skills/vuln_mining_tf_blackbox/scripts/scan_sast.sh code/tensorflow
 ```
 
 Output: `reports/sast-scan-report.md`

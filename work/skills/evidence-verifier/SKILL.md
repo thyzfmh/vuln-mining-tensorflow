@@ -23,7 +23,7 @@ Verifies that each reported vulnerability has:
 ## Usage
 
 ```bash
-./harness/verify_vulnerabilities.sh
+./work/skills/vuln_mining_tf_blackbox/scripts/verify_vulnerabilities.sh
 ```
 
 Output: `reports/vuln-verification.md`

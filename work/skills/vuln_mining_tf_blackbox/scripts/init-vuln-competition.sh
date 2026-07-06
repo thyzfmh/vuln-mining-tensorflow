@@ -15,17 +15,17 @@ mkdir -p reports plans ./verify
 
 # Generate submission deliverable stubs
 if [ ! -f vulnerability_list.md ]; then
-  cp templates/vulnerability_list.template.md vulnerability_list.md
+  cp work/skills/vuln_mining_tf_blackbox/templates/vulnerability_list.template.md vulnerability_list.md
   echo "Created vulnerability_list.md from template"
 fi
 
 if [ ! -f llm_chat_log.json ]; then
-  cp templates/llm_chat_log.template.json llm_chat_log.json
+  cp work/skills/vuln_mining_tf_blackbox/templates/llm_chat_log.template.json llm_chat_log.json
   echo "Created llm_chat_log.json from template"
 fi
 
 if [ ! -f vulnerability_report.md ]; then
-  cp templates/vulnerability_report.template.md vulnerability_report.md
+  cp work/skills/vuln_mining_tf_blackbox/templates/vulnerability_report.template.md vulnerability_report.md
   echo "Created vulnerability_report.md from template"
 fi
 
@@ -61,8 +61,8 @@ requirements:
 
 verification:
   primary_commands:
-    - "./harness/verify_vulnerabilities.sh"
-    - "./harness/final_verify.sh"
+    - "./work/skills/vuln_mining_tf_blackbox/scripts/verify_vulnerabilities.sh"
+    - "./work/skills/vuln_mining_tf_blackbox/scripts/final_verify.sh"
   runtime_verification:
     - "python3 verify/run_test.py"
   black_box_check:
@@ -91,19 +91,19 @@ Understand the target codebase and prepare for systematic vulnerability scanning
 
 ## Steps
 
-1. Run \`./harness/analyze_target.sh "$TARGET_PATH"\`.
+1. Run \`./work/skills/vuln_mining_tf_blackbox/scripts/analyze_target.sh "$TARGET_PATH"\`.
 2. Read \`reports/source-inventory.md\`.
 3. Identify the first high-risk module for scanning.
 4. Generate a concrete scan plan:
 
 \`\`\`bash
-./harness/plan_next_scan.sh scan-001 "Semantic analysis for input validation in kernel ops" "$TARGET_PATH/tensorflow/core/kernels/"
+./work/skills/vuln_mining_tf_blackbox/scripts/plan_next_scan.sh scan-001 "Semantic analysis for input validation in kernel ops" "$TARGET_PATH/tensorflow/core/kernels/"
 \`\`\`
 
 5. Execute the scan following work/skills/vuln_mining_tf_blackbox/prompt.md.
 EOF
 
-chmod +x harness/*.sh
+chmod +x work/skills/vuln_mining_tf_blackbox/scripts/*.sh
 
 echo ""
 echo "AI Vulnerability Mining competition initialized."
@@ -111,5 +111,5 @@ echo ""
 echo "Target: $TARGET_PATH"
 echo ""
 echo "Next:"
-echo "  ./harness/analyze_target.sh \"$TARGET_PATH\""
-echo "  ./harness/plan_next_scan.sh scan-001 \"Semantic analysis for input validation\" \"$TARGET_PATH/tensorflow/core/kernels/\""
+echo "  ./work/skills/vuln_mining_tf_blackbox/scripts/analyze_target.sh \"$TARGET_PATH\""
+echo "  ./work/skills/vuln_mining_tf_blackbox/scripts/plan_next_scan.sh scan-001 \"Semantic analysis for input validation\" \"$TARGET_PATH/tensorflow/core/kernels/\""

@@ -30,7 +30,7 @@ All outputs go into the project root:
 Execute these steps in order:
 
 ### Step 1: Code Semantic Analysis
-- Inventory the target codebase (`./harness/analyze_target.sh code/tensorflow`)
+- Inventory the target codebase (`./work/skills/vuln_mining_tf_blackbox/scripts/analyze_target.sh code/tensorflow`)
 - Identify high-risk modules (kernel ops, framework layer)
 - Read source files and understand function signatures, data flow, error handling
 

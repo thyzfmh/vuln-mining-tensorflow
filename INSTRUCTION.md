@@ -4,14 +4,13 @@
 
 - **目标代码**: `code/tensorflow` (C++)
 - **交付件**: `vulnerability_list.md`, `llm_chat_log.json`, `vulnerability_report.md`, `verify/run_test.py`
-- **输出目录**: `./`
 
 ## 执行方式
 
 加载并执行 Skill：
 
 ```text
-work/skills/vuln_mining_tf_blackbox/prompt.md
+work/skills/vuln_mining_tf_blackbox/SKILL.md
 ```
 
 该 Skill 包含 5 步流水线的完整自主流程：

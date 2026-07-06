@@ -5,7 +5,7 @@
 当前交付件已经整理为平台要求的目录结构：
 
 - `/INSTRUCTION.md`
-- `/work/skills/vuln_mining_tf_blackbox/`
+- `/work/skills/vuln_mining_tf_blackbox/SKILL.md`
 - `/work/skills/vuln_mining_tf_blackbox/skill.yaml`
 - `/work/skills/vuln_mining_tf_blackbox/prompt.md`
 - `/work/skills/vuln_mining_tf_blackbox/pipeline.md`

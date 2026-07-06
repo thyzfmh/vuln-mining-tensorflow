@@ -61,22 +61,22 @@ git checkout v2.11.0
 ### 2. 初始化项目
 
 ```bash
-./scripts/init-vuln-competition.sh ./code/tensorflow
+./work/skills/vuln_mining_tf_blackbox/scripts/init-vuln-competition.sh ./code/tensorflow
 ```
 
 ### 3. 运行扫描
 
 ```bash
-./harness/analyze_target.sh ./code/tensorflow
-./harness/scan_sast.sh ./code/tensorflow
-./harness/scan_llm.sh ./code/tensorflow
+./work/skills/vuln_mining_tf_blackbox/scripts/analyze_target.sh ./code/tensorflow
+./work/skills/vuln_mining_tf_blackbox/scripts/scan_sast.sh ./code/tensorflow
+./work/skills/vuln_mining_tf_blackbox/scripts/scan_llm.sh ./code/tensorflow
 ```
 
 ### 4. 验证结果
 
 ```bash
-./harness/verify_vulnerabilities.sh
-./harness/final_verify.sh
+./work/skills/vuln_mining_tf_blackbox/scripts/verify_vulnerabilities.sh
+./work/skills/vuln_mining_tf_blackbox/scripts/final_verify.sh
 ```
 
 ## 目录结构
@@ -89,6 +89,8 @@ vuln-mining-tensorflow/
 │   │   ├── prompt.md            # LLM 入口提示
 │   │   ├── pipeline.md          # 5步流水线
 │   │   ├── output_spec.md       # 输出规格
+│   │   ├── scripts/             # 脚本（与skill同目录，可整体移动）
+│   │   ├── templates/           # 交付件模板
 │   │   └── verify/run_test.py   # 运行时验证脚本
 │   ├── anti-hallucination/      # 幻觉防御
 │   ├── evidence-verifier/       # 证据验证器
@@ -97,14 +99,10 @@ vuln-mining-tensorflow/
 │   ├── shared/                  # 共享方法论
 │   ├── superpowers/             # 通用开发技能
 │   └── openspec-*/              # 结构化变更管理
-├── ./                   # 交付件输出
-│   ├── vulnerability_list.md
-│   ├── llm_chat_log.json
-│   ├── vulnerability_report.md
-│   └── verify/run_test.py
 ├── config/                       # Agent 配置
-├── harness/                # 验证脚本
-├── scripts/                # 初始化/报告脚本
+├── harness/                # (deprecated → scripts moved to work/skills/)
+├── scripts/                # (deprecated → scripts moved to work/skills/)
+├── templates/              # (deprecated → templates moved to work/skills/)
 ├── docs/                   # 文档
 ├── templates/              # 交付件模板
 ├── reports/                # 扫描报告

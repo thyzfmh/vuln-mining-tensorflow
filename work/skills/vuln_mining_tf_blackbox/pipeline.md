@@ -8,7 +8,7 @@ This system performs black-box vulnerability discovery on a large C++ codebase u
 
 ### 1. Code Ingestion
 - Clone/checkout the target codebase at the specified version
-- Run `./harness/analyze_target.sh code/tensorflow` to generate inventory
+- Run `./work/skills/vuln_mining_tf_blackbox/scripts/analyze_target.sh code/tensorflow` to generate inventory
 - Output: `reports/source-inventory.md`
 
 ### 2. Function Decomposition

@@ -189,6 +189,6 @@ else
   echo "  FINAL VERIFICATION: FAILED ($ERRORS errors, $WARNINGS warnings)"
   echo "========================================="
   echo ""
-  echo "Fix the errors above and re-run ./harness/final_verify.sh"
+  echo "Fix the errors above and re-run ./work/skills/vuln_mining_tf_blackbox/scripts/final_verify.sh"
   exit 1
 fi

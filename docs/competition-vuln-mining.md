@@ -45,11 +45,11 @@ git checkout v2.11.0
 Run the harness:
 
 ```bash
-./harness/analyze_target.sh ./code/tensorflow
-./harness/scan_sast.sh ./code/tensorflow
-./harness/scan_llm.sh ./code/tensorflow
-./harness/verify_vulnerabilities.sh
-./harness/final_verify.sh
+./work/skills/vuln_mining_tf_blackbox/scripts/analyze_target.sh ./code/tensorflow
+./work/skills/vuln_mining_tf_blackbox/scripts/scan_sast.sh ./code/tensorflow
+./work/skills/vuln_mining_tf_blackbox/scripts/scan_llm.sh ./code/tensorflow
+./work/skills/vuln_mining_tf_blackbox/scripts/verify_vulnerabilities.sh
+./work/skills/vuln_mining_tf_blackbox/scripts/final_verify.sh
 ```
 
 ### OpenCode Loop
@@ -69,12 +69,12 @@ read scan plan
 ## Harness Commands
 
 ```bash
-./harness/analyze_target.sh [target]          # Inventory the codebase
-./harness/plan_next_scan.sh <id> <goal> <scope>  # Generate scan plan
-./harness/scan_sast.sh [target]               # Run SAST pattern scan
-./harness/scan_llm.sh [target]                # LLM scan framework
-./harness/verify_vulnerabilities.sh           # Verify evidence chains
-./harness/final_verify.sh                     # Final verification gate
+./work/skills/vuln_mining_tf_blackbox/scripts/analyze_target.sh [target]          # Inventory the codebase
+./work/skills/vuln_mining_tf_blackbox/scripts/plan_next_scan.sh <id> <goal> <scope>  # Generate scan plan
+./work/skills/vuln_mining_tf_blackbox/scripts/scan_sast.sh [target]               # Run SAST pattern scan
+./work/skills/vuln_mining_tf_blackbox/scripts/scan_llm.sh [target]                # LLM scan framework
+./work/skills/vuln_mining_tf_blackbox/scripts/verify_vulnerabilities.sh           # Verify evidence chains
+./work/skills/vuln_mining_tf_blackbox/scripts/final_verify.sh                     # Final verification gate
 ```
 
 ## Design Philosophy

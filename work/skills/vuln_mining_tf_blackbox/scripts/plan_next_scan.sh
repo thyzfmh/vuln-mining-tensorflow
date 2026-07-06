@@ -81,8 +81,8 @@ For each candidate vulnerability:
 ## Verification Commands
 
 \`\`\`bash
-./harness/verify_vulnerabilities.sh
-./harness/final_verify.sh
+./work/skills/vuln_mining_tf_blackbox/scripts/verify_vulnerabilities.sh
+./work/skills/vuln_mining_tf_blackbox/scripts/final_verify.sh
 \`\`\`
 
 ## Review Gate
