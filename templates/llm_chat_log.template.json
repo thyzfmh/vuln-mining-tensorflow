@@ -1,0 +1,19 @@
+{
+  "metadata": {
+    "llm_model_used": "",
+    "total_turns": 0,
+    "system_prompt": "You are an expert in C++ source code auditing and security vulnerability analysis. You analyze code systematically, identifying potential security issues with precise source evidence."
+  },
+  "chat_history": [
+    {
+      "turn": 1,
+      "role": "user",
+      "content": "[EXAMPLE] Analyze the following C++ source code for potential security vulnerabilities. Focus on input validation, arithmetic safety, and memory safety. For each finding, provide: exact source line, the issue, and what input would trigger it."
+    },
+    {
+      "turn": 1,
+      "role": "assistant",
+      "content": "[EXAMPLE] I'll analyze the code systematically. [Analysis would appear here]"
+    }
+  ]
+}

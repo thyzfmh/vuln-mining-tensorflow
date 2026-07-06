@@ -1,0 +1,15 @@
+/target
+/code/tensorflow
+/reports/*.log
+/reports/*.tmp
+.DS_Store
+*.pyc
+__pycache__
+.env
+
+# Runtime-generated files
+reports/*.log
+reports/*.md
+result/
+acceptance-plan.yaml
+plans/scan-*.md
