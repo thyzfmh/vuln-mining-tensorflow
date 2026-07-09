@@ -3,20 +3,108 @@ from __future__ import annotations
 
 import pathlib
 import re
+from dataclasses import dataclass
 
 ROOT = pathlib.Path.cwd()
 CODE = ROOT / "code"
 REPORT = ROOT / "reports" / "sast-candidates.md"
 EXTS = {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx", ".cu"}
 
+
+@dataclass(frozen=True)
+class Pattern:
+    name: str
+    category: str
+    weight: int
+    regex: re.Pattern[str]
+    prompt_focus: str
+
+
 PATTERNS = [
-    ("division", re.compile(r"/\s*[A-Za-z_][A-Za-z0-9_]*(?!\s*[=])")),
-    ("modulo", re.compile(r"%\s*[A-Za-z_][A-Za-z0-9_]*")),
-    ("raw allocation", re.compile(r"\b(new|malloc|calloc|realloc)\b")),
-    ("unchecked cast", re.compile(r"\b(reinterpret_cast|static_cast)\s*<")),
-    ("indexing", re.compile(r"\[[^\]]*[A-Za-z_][A-Za-z0-9_]*[^\]]*\]")),
-    ("assert/check crash", re.compile(r"\b(CHECK|DCHECK|assert)\s*\(")),
-    ("memcpy/memmove", re.compile(r"\b(memcpy|memmove|memset)\s*\(")),
+    Pattern(
+        "division by variable",
+        "arithmetic",
+        8,
+        re.compile(r"(?<!/)/(?![/*])\s*[A-Za-z_][A-Za-z0-9_]*(?!\s*[=])"),
+        "zero and sign checks on denominator",
+    ),
+    Pattern(
+        "modulo by variable",
+        "arithmetic",
+        8,
+        re.compile(r"%\s*[A-Za-z_][A-Za-z0-9_]*"),
+        "zero checks on modulo divisor",
+    ),
+    Pattern(
+        "size multiplication/addition",
+        "integer-overflow",
+        7,
+        re.compile(r"\b(size|len|count|num|dim|bytes|width|height|stride|offset)\w*\b[^;\n]{0,80}[+*][^;\n]{0,80}\b(size|len|count|num|dim|bytes|width|height|stride|offset)\w*\b", re.I),
+        "overflow before allocation or indexing",
+    ),
+    Pattern(
+        "raw allocation",
+        "memory",
+        7,
+        re.compile(r"\b(new|malloc|calloc|realloc)\b"),
+        "allocation size derived from untrusted or shape values",
+    ),
+    Pattern(
+        "unchecked cast",
+        "type-confusion",
+        6,
+        re.compile(r"\b(reinterpret_cast|static_cast|const_cast)\s*<"),
+        "runtime type, alignment, and lifetime checks before cast",
+    ),
+    Pattern(
+        "array/vector indexing",
+        "bounds",
+        6,
+        re.compile(r"\[[^\]]*[A-Za-z_][A-Za-z0-9_]*[^\]]*\]"),
+        "index range checks and negative-to-unsigned conversions",
+    ),
+    Pattern(
+        "crash assertion",
+        "dos",
+        6,
+        re.compile(r"\b(CHECK|DCHECK|assert|abort|LOG\s*\(\s*FATAL\s*\))\s*\("),
+        "attacker-controlled path to process abort",
+    ),
+    Pattern(
+        "memory copy/fill",
+        "memory",
+        9,
+        re.compile(r"\b(memcpy|memmove|memset|strcpy|strncpy|std::copy)\s*\("),
+        "source/destination size relationship",
+    ),
+    Pattern(
+        "pointer arithmetic",
+        "memory",
+        5,
+        re.compile(r"\b[A-Za-z_][A-Za-z0-9_]*\s*[+-]\s*(size|len|count|num|dim|bytes|offset|index)\w*\b", re.I),
+        "bounds after pointer offset calculation",
+    ),
+    Pattern(
+        "external input parser",
+        "source",
+        5,
+        re.compile(r"\b(Parse|Decode|Deserialize|Read|Load|FromString|FromProto|FromJson)\b"),
+        "malformed or adversarial input reaching sinks",
+    ),
+    Pattern(
+        "shape/index vocabulary",
+        "invariant",
+        4,
+        re.compile(r"\b(shape|rank|axis|dim|stride|padding|window|offset|index|slice|size|num_elements)\b", re.I),
+        "shape/rank/axis invariant enforcement",
+    ),
+    Pattern(
+        "native boundary",
+        "boundary",
+        5,
+        re.compile(r"\b(extern\s+\"C\"|PyObject|JNIEnv|dlopen|dlsym)\b"),
+        "cross-language ownership and input validation",
+    ),
 ]
 
 
@@ -29,7 +117,7 @@ def detect_target() -> pathlib.Path:
 
 def main() -> None:
     target = detect_target()
-    candidates: list[tuple[int, str, list[str]]] = []
+    candidates: list[tuple[int, str, list[str], list[str], list[str]]] = []
     for path in target.rglob("*"):
         if not path.is_file() or path.suffix not in EXTS:
             continue
@@ -38,23 +126,54 @@ def main() -> None:
         except OSError:
             continue
         hits: list[str] = []
+        examples: list[str] = []
+        prompt_focus: set[str] = set()
         score = 0
-        for name, pattern in PATTERNS:
-            count = len(pattern.findall(text))
+        for pattern in PATTERNS:
+            count = len(pattern.regex.findall(text))
             if count:
-                hits.append(f"{name}: {count}")
-                score += count
+                bounded = min(count, 30)
+                hits.append(f"{pattern.category} / {pattern.name}: {count} (+{bounded * pattern.weight})")
+                score += bounded * pattern.weight
+                prompt_focus.add(pattern.prompt_focus)
+                line_count = 0
+                for number, line in enumerate(text.splitlines(), start=1):
+                    if pattern.regex.search(line):
+                        compact = " ".join(line.strip().split())
+                        if compact:
+                            examples.append(f"L{number} [{pattern.category}]: {compact[:180]}")
+                        line_count += 1
+                    if line_count >= 2:
+                        break
         if score:
-            candidates.append((score, path.relative_to(target).as_posix(), hits))
+            candidates.append((score, path.relative_to(target).as_posix(), hits, examples[:10], sorted(prompt_focus)))
 
-    candidates.sort(reverse=True)
+    candidates.sort(key=lambda item: (-item[0], item[1]))
     REPORT.parent.mkdir(parents=True, exist_ok=True)
-    lines = ["# SAST Candidate Extraction", "", "- Target alias: `TARGET_ROOT`", "- These are hints, not accepted vulnerabilities.", "", "## Top Candidates", ""]
-    for score, path, hits in candidates[:80]:
+    lines = [
+        "# SAST Candidate Extraction",
+        "",
+        "- Target alias: `TARGET_ROOT`",
+        "- These are hints, not accepted vulnerabilities.",
+        "- Ranking uses sink density, source adjacency, and invariant vocabulary.",
+        "",
+        "## Top Candidates",
+        "",
+    ]
+    for score, path, hits, examples, focuses in candidates[:100]:
         lines.append(f"### `{path}`")
         lines.append(f"- Score: {score}")
+        if focuses:
+            lines.append("- Prompt focus:")
+            for focus in focuses[:8]:
+                lines.append(f"  - {focus}")
+        lines.append("- Pattern hits:")
         for hit in hits:
             lines.append(f"- {hit}")
+        if examples:
+            lines.append("- Evidence lines:")
+            for example in examples:
+                lines.append(f"  - `{example}`")
         lines.append("")
     REPORT.write_text("\n".join(lines))
     print(f"wrote {REPORT}")
