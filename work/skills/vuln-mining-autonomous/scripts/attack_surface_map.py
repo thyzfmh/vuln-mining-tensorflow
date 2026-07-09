@@ -51,6 +51,13 @@ TEXT_PATTERNS = [
     ("native boundary", 6, re.compile(r"\b(extern\s+\"C\"|PyObject|JNIEnv|dlopen|dlsym)\b")),
     ("cast/pointer boundary", 5, re.compile(r"\b(reinterpret_cast|static_cast|const_cast|void\s*\*|char\s*\*)\b")),
 ]
+DOMAIN_RULES = [
+    ("python-api", ("python/", ".py")),
+    ("native-kernel-runtime", ("kernel", "runtime", "op", "lite")),
+    ("parser-serialization", ("parse", "proto", "reader", "loader", "import", "serialize", "deserialize")),
+    ("compiler-graph", ("compiler", "graph", "optimizer", "simplifier", "mlir", "hlo")),
+    ("accelerator-backend", ("cuda", "gpu", "opencl", "metal", "delegate", "mkl", "neon", "simd")),
+]
 
 
 def detect_target() -> pathlib.Path:
@@ -76,7 +83,8 @@ def matching_lines(text: str, pattern: re.Pattern[str], limit: int = 3) -> list[
 
 def main() -> None:
     target = detect_target()
-    entries: list[tuple[int, str, list[str], list[str]]] = []
+    entries: list[tuple[int, str, list[str], list[str], list[str]]] = []
+    domain_counts: dict[str, int] = {}
     for path in target.rglob("*"):
         if not path.is_file() or path.suffix not in EXTS:
             continue
@@ -85,6 +93,7 @@ def main() -> None:
         score = 0
         reasons: list[str] = []
         examples: list[str] = []
+        domains = [domain for domain, keywords in DOMAIN_RULES if any(keyword in rel_lower for keyword in keywords)]
 
         for keyword, weight in PATH_KEYWORDS.items():
             if keyword in rel_lower:
@@ -104,7 +113,9 @@ def main() -> None:
                 examples.extend(matching_lines(text, pattern, 2))
 
         if score:
-            entries.append((score, rel, reasons[:10], examples[:8]))
+            for domain in domains or ["uncategorized"]:
+                domain_counts[domain] = domain_counts.get(domain, 0) + 1
+            entries.append((score, rel, reasons[:10], examples[:8], domains or ["uncategorized"]))
 
     entries.sort(key=lambda item: (-item[0], item[1]))
     REPORT.parent.mkdir(parents=True, exist_ok=True)
@@ -115,12 +126,20 @@ def main() -> None:
         "- Purpose: rank source slices before LLM review.",
         "- Method: path keywords plus source/sink/sanitizer-adjacent text patterns.",
         "",
-        "## Top Suspicious Points",
+        "## Domain Coverage Summary",
         "",
     ]
-    for score, rel, reasons, examples in entries[:100]:
+    for domain, count in sorted(domain_counts.items(), key=lambda item: item[1], reverse=True):
+        lines.append(f"- `{domain}`: {count} suspicious files")
+    lines.extend([
+        "",
+        "## Top Suspicious Points",
+        "",
+    ])
+    for score, rel, reasons, examples, domains in entries:
         lines.append(f"### `{rel}`")
         lines.append(f"- Score: {score}")
+        lines.append(f"- Domain: {', '.join(domains)}")
         for reason in reasons:
             lines.append(f"- {reason}")
         if examples:

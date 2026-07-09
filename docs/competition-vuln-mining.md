@@ -29,8 +29,13 @@ questions only.
 The skill combines deterministic engineering and LLM analysis:
 
 1. inventory the source tree;
-2. run local SAST-style candidate extraction;
-3. review bounded source slices with black-box prompts;
-4. generate AI-authored runtime tests;
-5. reject unverified candidates;
-6. report only runtime-verified bugs.
+2. write a full source-file manifest;
+3. probe verification-tool availability;
+4. prepare sanitizer and runtime fallback escalation paths;
+5. run local SAST-style candidate extraction;
+6. review bounded source slices with black-box prompts;
+7. generate AI-authored runtime tests;
+8. reject unverified candidates only after verification escalation fails to produce real proof;
+9. maintain `reports/coverage-ledger.md` for every generated attack-surface and SAST candidate;
+10. continue until every candidate is verified or rejected;
+11. report only runtime-verified bugs.

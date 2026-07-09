@@ -12,6 +12,7 @@ work/skills/vuln-mining-autonomous/SKILL.md
 
 - Target source: the validation project already present under `code/`
 - Required outputs: `vulnerability_list.md`, `llm_chat_log.json`, `vulnerability_report.md`, `verify/run_test.py`
+- Required method evidence: `reports/source-file-manifest.md`, `reports/toolchain-capabilities.md`, `reports/verification-escalation.md`, `reports/coverage-ledger.md`, `reports/scan-completion.md`, one or more `plans/scan-wave-NNN.md` files
 - Final gate: `python3 work/skills/vuln-mining-autonomous/scripts/final_verify.py`
 - Result file: `result/output.md`
 
@@ -22,3 +23,4 @@ work/skills/vuln-mining-autonomous/SKILL.md
 3. Do not tell the LLM the project name, version, preseeded findings, or vulnerability database facts.
 4. Record the LLM interaction log without editing previous turns.
 5. Include only runtime-verified vulnerabilities in the final list.
+6. Keep scanning until every generated attack-surface entry and SAST candidate is verified or rejected.

@@ -8,7 +8,14 @@ from dataclasses import dataclass
 ROOT = pathlib.Path.cwd()
 CODE = ROOT / "code"
 REPORT = ROOT / "reports" / "sast-candidates.md"
-EXTS = {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx", ".cu"}
+EXTS = {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx", ".cu", ".py"}
+DOMAIN_RULES = [
+    ("python-api", ("python/", ".py")),
+    ("native-kernel-runtime", ("kernel", "runtime", "op", "lite")),
+    ("parser-serialization", ("parse", "proto", "reader", "loader", "import", "serialize", "deserialize")),
+    ("compiler-graph", ("compiler", "graph", "optimizer", "simplifier", "mlir", "hlo")),
+    ("accelerator-backend", ("cuda", "gpu", "opencl", "metal", "delegate", "mkl", "neon", "simd")),
+]
 
 
 @dataclass(frozen=True)
@@ -105,6 +112,13 @@ PATTERNS = [
         re.compile(r"\b(extern\s+\"C\"|PyObject|JNIEnv|dlopen|dlsym)\b"),
         "cross-language ownership and input validation",
     ),
+    Pattern(
+        "python dynamic boundary",
+        "python",
+        5,
+        re.compile(r"\b(eval|exec|__import__|getattr|setattr|ctypes|pywrap)\b"),
+        "Python-layer input validation before dynamic or native dispatch",
+    ),
 ]
 
 
@@ -117,10 +131,14 @@ def detect_target() -> pathlib.Path:
 
 def main() -> None:
     target = detect_target()
-    candidates: list[tuple[int, str, list[str], list[str], list[str]]] = []
+    candidates: list[tuple[int, str, list[str], list[str], list[str], list[str]]] = []
+    domain_counts: dict[str, int] = {}
     for path in target.rglob("*"):
         if not path.is_file() or path.suffix not in EXTS:
             continue
+        rel = path.relative_to(target).as_posix()
+        rel_lower = rel.lower()
+        domains = [domain for domain, keywords in DOMAIN_RULES if any(keyword in rel_lower for keyword in keywords)]
         try:
             text = path.read_text(errors="replace")
         except OSError:
@@ -146,7 +164,9 @@ def main() -> None:
                     if line_count >= 2:
                         break
         if score:
-            candidates.append((score, path.relative_to(target).as_posix(), hits, examples[:10], sorted(prompt_focus)))
+            for domain in domains or ["uncategorized"]:
+                domain_counts[domain] = domain_counts.get(domain, 0) + 1
+            candidates.append((score, rel, hits, examples[:10], sorted(prompt_focus), domains or ["uncategorized"]))
 
     candidates.sort(key=lambda item: (-item[0], item[1]))
     REPORT.parent.mkdir(parents=True, exist_ok=True)
@@ -157,12 +177,20 @@ def main() -> None:
         "- These are hints, not accepted vulnerabilities.",
         "- Ranking uses sink density, source adjacency, and invariant vocabulary.",
         "",
-        "## Top Candidates",
+        "## Domain Coverage Summary",
         "",
     ]
-    for score, path, hits, examples, focuses in candidates[:100]:
+    for domain, count in sorted(domain_counts.items(), key=lambda item: item[1], reverse=True):
+        lines.append(f"- `{domain}`: {count} candidate files")
+    lines.extend([
+        "",
+        "## Top Candidates",
+        "",
+    ])
+    for score, path, hits, examples, focuses, domains in candidates:
         lines.append(f"### `{path}`")
         lines.append(f"- Score: {score}")
+        lines.append(f"- Domain: {', '.join(domains)}")
         if focuses:
             lines.append("- Prompt focus:")
             for focus in focuses[:8]:

@@ -19,4 +19,8 @@
 - Root legacy directories removed: PASSED
 - Skill package self-check: PASSED
 - Skill helper scripts smoke test: PASSED
+- Issue #1 all-candidate exhaustion hardening: PASSED
+- Toolchain probing and full-source manifest hardening: PASSED
+- Verification escalation hardening: PASSED
+- Final gate synthetic compliance smoke test: PASSED
 - Final vulnerability mining run: not executed in this packaging pass

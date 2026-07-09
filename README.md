@@ -23,10 +23,12 @@ work/skills/vuln-mining-autonomous/SKILL.md
 - Skill name: `vuln-mining-autonomous`
 - Final gate: `python3 work/skills/vuln-mining-autonomous/scripts/final_verify.py`
 - Required deliverables: `vulnerability_list.md`, `llm_chat_log.json`, `vulnerability_report.md`, `verify/run_test.py`
+- Required method evidence: `reports/source-file-manifest.md`, `reports/toolchain-capabilities.md`, `reports/verification-escalation.md`, `reports/coverage-ledger.md`, `reports/scan-completion.md`, one or more `plans/scan-wave-NNN.md` files
 
 The skill owns the full loop: target discovery, inventory, deterministic SAST
 candidates, black-box LLM review logging, AI-generated tests, runtime
-verification, final reports, and result update.
+verification, verification-tool probing and escalation, candidate-space
+exhaustion, coverage-ledger maintenance, final reports, and result update.
 
 ## Directory Layout
 

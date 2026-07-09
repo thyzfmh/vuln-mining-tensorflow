@@ -56,6 +56,9 @@ for file in \
   "$expected_skill_dir/scripts/source_inventory.py" \
   "$expected_skill_dir/scripts/attack_surface_map.py" \
   "$expected_skill_dir/scripts/sast_candidates.py" \
+  "$expected_skill_dir/scripts/init_coverage_ledger.py" \
+  "$expected_skill_dir/scripts/probe_verification_tools.py" \
+  "$expected_skill_dir/scripts/escalate_verification_tools.py" \
   "$expected_skill_dir/scripts/final_verify.py" \
   "$expected_skill_dir/scripts/self_check.sh" \
   "$expected_skill_dir/references/method-cards.md" \
@@ -71,6 +74,9 @@ python3 -m py_compile \
   "$expected_skill_dir/scripts/source_inventory.py" \
   "$expected_skill_dir/scripts/attack_surface_map.py" \
   "$expected_skill_dir/scripts/sast_candidates.py" \
+  "$expected_skill_dir/scripts/init_coverage_ledger.py" \
+  "$expected_skill_dir/scripts/probe_verification_tools.py" \
+  "$expected_skill_dir/scripts/escalate_verification_tools.py" \
   "$expected_skill_dir/scripts/final_verify.py"
 rm -rf "$expected_skill_dir/scripts/__pycache__"
 bash -n "$expected_skill_dir/scripts/self_check.sh"
