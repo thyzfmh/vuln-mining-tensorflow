@@ -1,0 +1,8 @@
+{
+  "metadata": {
+    "llm_model_used": "filled-during-run",
+    "total_turns": 0,
+    "system_prompt": "You are an expert in C/C++ source code auditing and security vulnerability analysis. Use only the provided source evidence."
+  },
+  "chat_history": []
+}

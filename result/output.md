@@ -5,37 +5,18 @@
 当前交付件已经整理为平台要求的目录结构：
 
 - `/INSTRUCTION.md`
-- `/work/skills/vuln_mining_tf_blackbox/SKILL.md`
-- `/work/skills/vuln_mining_tf_blackbox/skill.yaml`
-- `/work/skills/vuln_mining_tf_blackbox/prompt.md`
-- `/work/skills/vuln_mining_tf_blackbox/pipeline.md`
-- `/work/skills/vuln_mining_tf_blackbox/output_spec.md`
-- `/work/skills/vuln_mining_tf_blackbox/verify/run_test.py`
+- `/work/skills/vuln-mining-autonomous/SKILL.md`
 - `/result/output.md`
 - `/result/screenshot`
 - `/logs/interaction.md`
 - `/logs/trace`
 
-验证记录见：
+## 本次入口收口验证
 
-- `logs/trace/self-verify.log`
-
-## 本次自验证结果
-
-已使用一个最小 C++ 源码目录完成端到端自验证：
-
-```text
-SELF_VERIFY_PASS
-```
-
-验证覆盖：
-
-- 生成漏洞挖掘工程结构；
-- 运行目标代码分析（`harness/analyze_target.sh`）；
-- 生成扫描计划（`harness/plan_next_scan.sh`）；
-- 运行 SAST 模式扫描（`harness/scan_sast.sh`）；
-- 运行 LLM 扫描框架（`harness/scan_llm.sh`）；
-- 运行漏洞验证（`harness/verify_vulnerabilities.sh`）；
-- 运行最终验证（`harness/final_verify.sh`）；
-- 生成 `reports/` 下的所有报告文件；
-- 8 项测试全部通过。
+- Date: 2026-07-09
+- Skill entry: `work/skills/vuln-mining-autonomous/SKILL.md`
+- Target source: auto-detected from `code/`
+- Root legacy directories removed: PASSED
+- Skill package self-check: PASSED
+- Skill helper scripts smoke test: PASSED
+- Final vulnerability mining run: not executed in this packaging pass

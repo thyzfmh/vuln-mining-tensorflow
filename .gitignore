@@ -1,18 +1,18 @@
 /target
-/code/tensorflow
+/code/*
+!/code/.gitkeep
 .DS_Store
 *.pyc
 __pycache__
 .env
 
-# Runtime-generated reports
-reports/*.log
-reports/*.md
+# Runtime-generated reports and plans
+/reports/
+/plans/
 
-# Runtime-generated deliverables (created by init script)
+# Runtime-generated deliverables
 /vulnerability_list.md
 /llm_chat_log.json
 /vulnerability_report.md
 /verify/
-acceptance-plan.yaml
-plans/scan-*.md
+/acceptance-plan.yaml

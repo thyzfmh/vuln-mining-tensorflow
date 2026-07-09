@@ -1,22 +1,5 @@
-# AI Vulnerability Mining — Interaction Log
+# Interaction Notes
 
-## Session Start
-
-- Date: [auto-filled]
-- Target: code/tensorflow
-- Model: [auto-filled]
-
-## Progress
-
-- [ ] Phase 1: Target Analysis
-- [ ] Phase 2: SAST-Led Scanning
-- [ ] Phase 3: LLM Semantic Analysis
-- [ ] Phase 4: Evidence Verification
-- [ ] Phase 5: Deliverable Generation
-- [ ] Phase 6: Final Verification
-
-## Findings Summary
-
-| # | Vulnerability | Type | Severity | Status |
-|---|--------------|------|----------|--------|
-| - | (none yet) | - | - | - |
+The competition interaction artifact is `llm_chat_log.json`, generated during
+the OpenCode run. This file is only an operator note and must not replace the
+required JSON log.

@@ -1,8 +1,0 @@
-{
-  "metadata": {
-    "llm_model_used": "",
-    "total_turns": 0,
-    "system_prompt": "You are an expert in C++ source code auditing and security vulnerability analysis. You analyze code systematically, identifying potential security issues with precise source evidence."
-  },
-  "chat_history": []
-}
