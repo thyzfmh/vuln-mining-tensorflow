@@ -19,6 +19,7 @@ description: Use when OpenCode is running this repository's AI vulnerability min
   - `reports/toolchain-capabilities.md`
   - `reports/verification-escalation.md`
   - `reports/runtime-entrypoints.md`
+  - `reports/npm-ast-candidates.md`
   - `reports/coverage-ledger.md`
   - `reports/scan-completion.md`
   - one or more `plans/scan-wave-NNN.md` files until candidate space is exhausted
@@ -51,6 +52,7 @@ normalize workspace
   -> map existing real runtime entry points
   -> map attack surfaces and suspicious points
   -> extract deterministic SAST candidates
+  -> run NPM-provisioned AST candidate extraction when npm/npx is available
   -> seed coverage ledger and first scan wave
   -> write scan wave checkpoint
   -> run bounded black-box LLM source review, skeptic pass, and variant/family search
@@ -86,7 +88,7 @@ The final gate checks method evidence, not only output format:
 ```markdown
 # Coverage Ledger
 
-coverage-budget: all generated attack-surface and SAST candidate entries
+coverage-budget: all generated attack-surface, SAST, and NPM AST candidate entries
 minimum-reviewed-targets: N
 candidate-space-exhausted: no
 ```
@@ -117,6 +119,7 @@ candidate-space-exhausted: no
    - `candidate extraction ran over full manifest`
    - `all attack-surface entries reviewed`
    - `all sast candidates triaged`
+   - `all npm ast candidates triaged`
    - `no unverified accepted hypotheses remain`
    - `all runtime-verified vulnerabilities listed`
 
@@ -137,12 +140,14 @@ target, "scan all code" means:
    considered.
 4. When a local semantic scanner is available, use source-to-sink or taint-flow
    results to expand the same candidate ledger across the full target tree.
-5. The LLM reviews bounded batches from the generated candidate space, with a
+5. When npm/npx is available, run the pinned `@ast-grep/cli` through `npx` to
+   add structural C/C++ and Python matches to the same candidate ledger.
+6. The LLM reviews bounded batches from the generated candidate space, with a
    skeptic pass for every accepted hypothesis.
-6. Runtime tests are generated only for hypotheses that survive source review.
-7. Variant/family search expands from verified or accepted patterns until that
+7. Runtime tests are generated only for hypotheses that survive source review.
+8. Variant/family search expands from verified or accepted patterns until that
    family is also verified or rejected.
-8. The run finishes only when the coverage ledger proves no generated candidate
+9. The run finishes only when the coverage ledger proves no generated candidate
    or accepted hypothesis remains open.
 
 This is not a mathematical proof that no vulnerability exists in unreachable or
@@ -244,6 +249,7 @@ python3 work/skills/vuln-mining-autonomous/scripts/escalate_verification_tools.p
 python3 work/skills/vuln-mining-autonomous/scripts/runtime_entrypoints.py
 python3 work/skills/vuln-mining-autonomous/scripts/attack_surface_map.py
 python3 work/skills/vuln-mining-autonomous/scripts/sast_candidates.py
+python3 work/skills/vuln-mining-autonomous/scripts/npm_ast_candidates.py
 python3 work/skills/vuln-mining-autonomous/scripts/init_coverage_ledger.py
 ```
 
@@ -256,11 +262,12 @@ These scripts must write:
 - `reports/runtime-entrypoints.md`
 - `reports/attack-surface-map.md`
 - `reports/sast-candidates.md`
+- `reports/npm-ast-candidates.md`
 - `reports/coverage-ledger.md`
 
-The coverage ledger is initialized from the union of generated attack-surface
-and SAST candidate entries. Leave `candidate-space-exhausted` as `no` until
-every generated entry has a final `verified` or `rejected` status.
+The coverage ledger is initialized from the union of generated attack-surface,
+SAST, and NPM AST candidate entries. Leave `candidate-space-exhausted` as `no`
+until every generated entry has a final `verified` or `rejected` status.
 
 Then write `plans/scan-wave-001.md` with:
 
@@ -272,6 +279,11 @@ Then write `plans/scan-wave-001.md` with:
 
 Do not keep inventory findings only in chat. Every candidate selected or
 rejected during the run must be reflected in `reports/coverage-ledger.md`.
+
+If npm/npx is available, `npm_ast_candidates.py` must invoke the pinned
+`@ast-grep/cli` package and merge every reported file into the same coverage
+ledger. An NPM download failure is a recorded tool-path failure, not a reason to
+end scanning or report zero findings.
 
 If `reports/toolchain-capabilities.md` shows CodeQL or Semgrep is available,
 run its source-to-sink or taint analysis as an additional full-tree candidate
@@ -386,8 +398,8 @@ and follow this structure:
 ```
 
 `vulnerability_report.md` must describe the engineering method, SAST candidates,
-LLM review waves, rejected false positives, runtime verification, and remaining
-risk. It must also summarize:
+NPM AST candidates, LLM review waves, rejected false positives, runtime
+verification, and remaining risk. It must also summarize:
 
 - coverage budget and reviewed target count from `reports/coverage-ledger.md`;
 - the candidate-space exhaustion rationale from `reports/scan-completion.md`;

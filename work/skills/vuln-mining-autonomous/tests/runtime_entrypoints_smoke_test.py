@@ -52,12 +52,21 @@ def main() -> None:
         ]:
             if expected not in report:
                 raise SystemExit(f"missing expected entrypoint kind: {expected}")
+        write(
+            workspace / "reports" / "npm-ast-candidates.md",
+            "# NPM AST Candidate Extraction\n\n"
+            "- Source files considered: 1\n"
+            "- Package: `@ast-grep/cli@0.44.1`\n"
+            "- Scanner source: npx\n"
+            "- Scanner status: completed\n",
+        )
 
         old_cwd = pathlib.Path.cwd()
         try:
             os.chdir(workspace)
             final_verify = runpy.run_path(str(FINAL_VERIFY))
             final_verify["verify_runtime_entrypoints"]()
+            final_verify["verify_npm_ast_candidates"]()
             if final_verify["FAILURES"]:
                 raise SystemExit(f"runtime entrypoint final-gate check failed: {final_verify['FAILURES']}")
         finally:

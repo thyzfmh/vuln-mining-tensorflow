@@ -73,7 +73,19 @@ the `VERIFIED` marker only for reproduced findings.
    an unexpected crash, signal, fatal check, sanitizer finding, or other
    concrete failure on a real target path.
 
-## Card 7: Semantic Flow Expansion
+## Card 7: NPM Structural Expansion
+
+1. Run `npm_ast_candidates.py` when npm/npx is available. It bootstraps the
+   pinned `@ast-grep/cli` package without a global installation.
+2. Treat every AST match in `reports/npm-ast-candidates.md` as a candidate and
+   merge it into `reports/coverage-ledger.md`, even when the same file already
+   appears in a regex-based report.
+3. Use the structural match line and `reports/runtime-entrypoints.md` to select
+   a bounded source-to-sink review and a real target test route.
+4. A missing package or failed download is not a scan-completion reason; record
+   the attempt and continue with the deterministic extractors and runtime paths.
+
+## Card 8: Semantic Flow Expansion
 
 1. If `reports/toolchain-capabilities.md` shows CodeQL or Semgrep is available,
    run the applicable source-to-sink or taint rules over the full target tree.

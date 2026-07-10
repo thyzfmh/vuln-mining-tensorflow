@@ -12,7 +12,7 @@ work/skills/vuln-mining-autonomous/SKILL.md
 
 - Target source: the validation project already present under `code/`
 - Required outputs: `vulnerability_list.md`, `llm_chat_log.json`, `vulnerability_report.md`, `verify/run_test.py`
-- Required method evidence: `reports/source-file-manifest.md`, `reports/toolchain-capabilities.md`, `reports/verification-escalation.md`, `reports/runtime-entrypoints.md`, `reports/coverage-ledger.md`, `reports/scan-completion.md`, one or more `plans/scan-wave-NNN.md` files
+- Required method evidence: `reports/source-file-manifest.md`, `reports/toolchain-capabilities.md`, `reports/verification-escalation.md`, `reports/runtime-entrypoints.md`, `reports/npm-ast-candidates.md`, `reports/coverage-ledger.md`, `reports/scan-completion.md`, one or more `plans/scan-wave-NNN.md` files
 - Final gate: `python3 work/skills/vuln-mining-autonomous/scripts/final_verify.py`
 - Result file: `result/output.md`
 
@@ -26,3 +26,4 @@ work/skills/vuln-mining-autonomous/SKILL.md
 6. Keep scanning until every generated attack-surface entry and SAST candidate is verified or rejected.
 7. Do not end with zero findings because ASAN/UBSAN is unavailable or source-tree import fails; continue with alternate real runtime entry points.
 8. Generate `reports/runtime-entrypoints.md` and use its existing test, binary, parser, or module routes before creating a custom reproducer.
+9. When npm/npx is available, run the pinned NPM AST scanner and merge every structural match into the same candidate ledger.

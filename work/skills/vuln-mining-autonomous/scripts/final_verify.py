@@ -222,6 +222,7 @@ def verify_reports() -> None:
         "method",
         "attack surface",
         "candidate",
+        "npm ast",
         "hypoth",
         "verification",
         "reproduc",
@@ -258,6 +259,7 @@ def verify_method_artifacts() -> None:
         "reports/source-file-manifest.md",
         "reports/attack-surface-map.md",
         "reports/sast-candidates.md",
+        "reports/npm-ast-candidates.md",
         "reports/toolchain-capabilities.md",
         "reports/verification-escalation.md",
         "reports/runtime-entrypoints.md",
@@ -286,6 +288,7 @@ def verify_method_artifacts() -> None:
     verify_toolchain_capabilities()
     verify_verification_escalation()
     verify_runtime_entrypoints()
+    verify_npm_ast_candidates()
 
 
 def verify_coverage_ledger() -> None:
@@ -307,7 +310,8 @@ def verify_coverage_ledger() -> None:
 
     attack_paths = markdown_heading_paths(text("reports/attack-surface-map.md"))
     sast_paths = markdown_heading_paths(text("reports/sast-candidates.md"))
-    all_paths = sorted(set(attack_paths + sast_paths))
+    npm_ast_paths = markdown_heading_paths(text("reports/npm-ast-candidates.md"))
+    all_paths = sorted(set(attack_paths + sast_paths + npm_ast_paths))
     expected = len(all_paths) if all_paths else minimum
     if minimum < expected:
         fail(f"reports/coverage-ledger.md minimum-reviewed-targets must be at least {expected}")
@@ -349,6 +353,7 @@ def verify_scan_completion() -> None:
         "candidate extraction ran over full manifest",
         "all attack-surface entries reviewed",
         "all sast candidates triaged",
+        "all npm ast candidates triaged",
         "no unverified accepted hypotheses remain",
         "all runtime-verified vulnerabilities listed",
     ]
@@ -393,6 +398,19 @@ def verify_runtime_entrypoints() -> None:
     ]:
         if item not in body:
             fail(f"reports/runtime-entrypoints.md missing required field: {item}")
+
+
+def verify_npm_ast_candidates() -> None:
+    body = text("reports/npm-ast-candidates.md").lower()
+    for item in [
+        "# npm ast candidate extraction",
+        "source files considered:",
+        "package:",
+        "scanner source:",
+        "scanner status:",
+    ]:
+        if item not in body:
+            fail(f"reports/npm-ast-candidates.md missing required field: {item}")
 
 
 def verify_result_output() -> None:

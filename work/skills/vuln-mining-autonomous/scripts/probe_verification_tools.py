@@ -37,6 +37,17 @@ def compiler_version(compiler: str) -> str:
     return first[0] if first else f"returncode={proc.returncode}"
 
 
+def tool_version(tool: str) -> str:
+    if not tool:
+        return "unavailable"
+    try:
+        proc = run([tool, "--version"], timeout=10)
+    except Exception as exc:  # pragma: no cover - defensive report path
+        return f"error: {exc!r}"
+    first = (proc.stdout or proc.stderr).splitlines()
+    return first[0] if first else f"returncode={proc.returncode}"
+
+
 def sanitizer_probe(compiler: str, sanitizer: str) -> tuple[bool, str]:
     if not compiler:
         return False, "compiler unavailable"
@@ -98,6 +109,8 @@ def main() -> None:
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     clang = which("clang++")
     gxx = which("g++")
+    npm = which("npm")
+    npx = which("npx")
     compiler = clang or gxx
     asan_ok, asan_detail = sanitizer_probe(compiler, "address")
     ubsan_ok, ubsan_detail = sanitizer_probe(compiler, "undefined")
@@ -120,6 +133,10 @@ def main() -> None:
         f"- bazel: `{which('bazel') or 'unavailable'}`",
         f"- cmake: `{which('cmake') or 'unavailable'}`",
         f"- ninja: `{which('ninja') or 'unavailable'}`",
+        f"- npm: `{npm or 'unavailable'}`",
+        f"- npm version: {tool_version(npm)}",
+        f"- npx: `{npx or 'unavailable'}`",
+        f"- npx version: {tool_version(npx)}",
         f"- codeql: `{which('codeql') or 'unavailable'}`",
         f"- semgrep: `{which('semgrep') or 'unavailable'}`",
         f"- valgrind: `{which('valgrind') or 'unavailable'}`",
@@ -134,6 +151,7 @@ def main() -> None:
         "- If neither sanitizer nor real target execution proof exists, reject the hypothesis and record the reason in `reports/hypotheses.md`.",
         "- When libFuzzer and coverage tooling are available, use a bounded seed corpus and record whether the target builds, executes, crashes, and reaches additional code before claiming a finding.",
         "- When CodeQL or Semgrep is available, use its source-to-sink or taint results to expand the candidate ledger; static results remain hypotheses until a real target path verifies them.",
+        "- When npm and npx are available, run `npm_ast_candidates.py`; it provisions the pinned `@ast-grep/cli` package without a global install and adds full-tree structural matches to the candidate ledger.",
     ]
     REPORT.write_text("\n".join(lines) + "\n")
     print(f"wrote {REPORT}")

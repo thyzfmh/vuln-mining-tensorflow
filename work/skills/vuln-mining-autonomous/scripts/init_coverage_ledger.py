@@ -7,6 +7,7 @@ import re
 ROOT = pathlib.Path.cwd()
 ATTACK_MAP = ROOT / "reports" / "attack-surface-map.md"
 SAST_CANDIDATES = ROOT / "reports" / "sast-candidates.md"
+NPM_AST_CANDIDATES = ROOT / "reports" / "npm-ast-candidates.md"
 LEDGER = ROOT / "reports" / "coverage-ledger.md"
 
 
@@ -41,6 +42,9 @@ def merged_candidates() -> list[tuple[str, str]]:
     ) + parse_candidate_report(
         SAST_CANDIDATES,
         "reports/sast-candidates.md is missing; run sast_candidates.py first",
+    ) + parse_candidate_report(
+        NPM_AST_CANDIDATES,
+        "reports/npm-ast-candidates.md is missing; run npm_ast_candidates.py first",
     ):
         if path not in merged:
             merged[path] = set()
@@ -63,7 +67,7 @@ def main() -> None:
     lines = [
         "# Coverage Ledger",
         "",
-        "coverage-budget: all generated attack-surface and SAST candidate entries",
+        "coverage-budget: all generated attack-surface, SAST, and NPM AST candidate entries",
         f"minimum-reviewed-targets: {minimum}",
         "candidate-space-exhausted: no",
         "",

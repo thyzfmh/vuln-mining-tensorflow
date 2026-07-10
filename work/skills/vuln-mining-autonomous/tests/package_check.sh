@@ -56,6 +56,7 @@ for file in \
   "$expected_skill_dir/scripts/source_inventory.py" \
   "$expected_skill_dir/scripts/attack_surface_map.py" \
   "$expected_skill_dir/scripts/sast_candidates.py" \
+  "$expected_skill_dir/scripts/npm_ast_candidates.py" \
   "$expected_skill_dir/scripts/init_coverage_ledger.py" \
   "$expected_skill_dir/scripts/probe_verification_tools.py" \
   "$expected_skill_dir/scripts/escalate_verification_tools.py" \
@@ -75,6 +76,7 @@ python3 -m py_compile \
   "$expected_skill_dir/scripts/source_inventory.py" \
   "$expected_skill_dir/scripts/attack_surface_map.py" \
   "$expected_skill_dir/scripts/sast_candidates.py" \
+  "$expected_skill_dir/scripts/npm_ast_candidates.py" \
   "$expected_skill_dir/scripts/init_coverage_ledger.py" \
   "$expected_skill_dir/scripts/probe_verification_tools.py" \
   "$expected_skill_dir/scripts/escalate_verification_tools.py" \
