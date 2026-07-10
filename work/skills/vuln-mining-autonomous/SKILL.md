@@ -157,6 +157,14 @@ Guard Malloc, Python debug runtime, or another real target command.
 - If ASAN or UBSAN is unavailable in the first probe, do not stop. Use
   `reports/verification-escalation.md` to retry with alternate compilers,
   project build-system flags, and runtime fallback tools.
+- If the target package cannot be imported directly from the source tree, do
+  not stop. Try a real command-line tool, Python subprocess with adjusted
+  `PYTHONPATH`, existing tests, native reproducer, parser entry point, generated
+  minimal model/input, or build-system test target.
+- Toolchain limits, sanitizer absence, and source-tree import failures are
+  verification-path failures, not scan-completion reasons. Continue scanning
+  other candidates and alternate runtime surfaces until a runtime-verified
+  finding exists and the candidate space is exhausted.
 - Do not list memory-safety or undefined-behavior hypotheses merely from source
   reasoning or a toy program.
 - Without sanitizer support, a candidate can still be listed only if a real

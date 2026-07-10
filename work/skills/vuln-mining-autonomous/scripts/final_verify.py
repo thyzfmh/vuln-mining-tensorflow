@@ -20,6 +20,17 @@ SIMULATION_MARKERS = [
     "\u6a21\u62df\u6d4b\u8bd5",
     "\u6f14\u793a\u4ee3\u7801",
 ]
+PREMATURE_STOP_PATTERNS = [
+    r"NO_RUNTIME_VERIFIED_VULNERABILITIES",
+    r"verified vulnerabilit(y|ies) count:\s*0",
+    r"verified vulnerabilities:\s*0",
+    r"no runtime-verified vulnerabilities",
+    r"no verified vulnerabilities",
+    r"\u672a\u53d1\u73b0\u4efb\u4f55\u53ef\u901a\u8fc7\u8fd0\u884c\u65f6\u9a8c\u8bc1\u7684\u6f0f\u6d1e",
+    r"(\u7531\u4e8e|\u56e0).{0,20}(\u5de5\u5177\u94fe|asan|ubsan).{0,80}(\u672a\u80fd\u53d1\u73b0|\u672a\u53d1\u73b0|0\s*\u4e2a)",
+    r"(\u7531\u4e8e|\u56e0).{0,20}\u65e0\u6cd5\u4ece\u6e90\u7801\u6811.{0,80}(\u672a\u80fd\u53d1\u73b0|\u672a\u53d1\u73b0|0\s*\u4e2a)",
+    r"(because of|due to).{0,40}(toolchain|asan|ubsan|source-tree import).{0,80}(no|zero|0).{0,40}(verified|runtime)",
+]
 
 
 def fail(message: str) -> None:
@@ -69,6 +80,18 @@ def contains_simulation_marker(body: str) -> str | None:
         if marker.lower() in lower:
             return marker
     return None
+
+
+def verify_no_premature_toolchain_stop() -> None:
+    combined = "\n".join([
+        text("vulnerability_list.md"),
+        text("vulnerability_report.md"),
+        text("reports/verification-output.txt"),
+        text("result/output.md"),
+    ]).lower()
+    for pattern in PREMATURE_STOP_PATTERNS:
+        if re.search(pattern, combined, re.I):
+            fail("toolchain or import limitations cannot be used as the final no-finding status; continue with escalation and alternative real target paths")
 
 
 def verify_chat_log() -> None:
@@ -375,6 +398,7 @@ def main() -> int:
     verify_run_test()
     verify_reports()
     verify_result_output()
+    verify_no_premature_toolchain_stop()
     if FAILURES:
         print("FINAL_VERIFY_FAIL")
         for failure in FAILURES:

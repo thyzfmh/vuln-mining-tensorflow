@@ -24,3 +24,4 @@ work/skills/vuln-mining-autonomous/SKILL.md
 4. Record the LLM interaction log without editing previous turns.
 5. Include only runtime-verified vulnerabilities in the final list.
 6. Keep scanning until every generated attack-surface entry and SAST candidate is verified or rejected.
+7. Do not end with zero findings because ASAN/UBSAN is unavailable or source-tree import fails; continue with alternate real runtime entry points.
