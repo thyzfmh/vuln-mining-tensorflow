@@ -260,6 +260,7 @@ def verify_method_artifacts() -> None:
         "reports/sast-candidates.md",
         "reports/toolchain-capabilities.md",
         "reports/verification-escalation.md",
+        "reports/runtime-entrypoints.md",
         "reports/coverage-ledger.md",
         "reports/scan-completion.md",
         "reports/hypotheses.md",
@@ -284,6 +285,7 @@ def verify_method_artifacts() -> None:
     verify_scan_completion()
     verify_toolchain_capabilities()
     verify_verification_escalation()
+    verify_runtime_entrypoints()
 
 
 def verify_coverage_ledger() -> None:
@@ -379,6 +381,18 @@ def verify_verification_escalation() -> None:
         fail("reports/verification-escalation.md must record ASAN/UBSAN escalation attempts")
     if "only reject after recording" not in lower:
         fail("reports/verification-escalation.md must include the reject-after-escalation policy")
+
+
+def verify_runtime_entrypoints() -> None:
+    body = text("reports/runtime-entrypoints.md").lower()
+    for item in [
+        "# runtime entrypoint map",
+        "source files traversed:",
+        "discovered runtime entrypoints:",
+        "| kind | target | runtime surface | evidence | preferred verification |",
+    ]:
+        if item not in body:
+            fail(f"reports/runtime-entrypoints.md missing required field: {item}")
 
 
 def verify_result_output() -> None:

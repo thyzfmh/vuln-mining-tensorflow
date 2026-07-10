@@ -68,6 +68,32 @@ int main() {
         return True, "compile-and-run succeeded"
 
 
+def fuzzing_probe(compiler: str) -> tuple[bool, str]:
+    if not compiler:
+        return False, "compiler unavailable"
+    source = r"""
+#include <cstddef>
+#include <cstdint>
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t*, size_t) { return 0; }
+"""
+    with tempfile.TemporaryDirectory() as td:
+        tmp = pathlib.Path(td)
+        src = tmp / "probe.cc"
+        binary = tmp / "probe"
+        src.write_text(source)
+        cmd = [compiler, "-std=c++17", "-fsanitize=fuzzer,address", str(src), "-o", str(binary)]
+        try:
+            compile_proc = run(cmd, cwd=tmp)
+        except Exception as exc:  # pragma: no cover - defensive report path
+            return False, f"compile error: {exc!r}"
+        if compile_proc.returncode != 0:
+            return False, f"compile returncode={compile_proc.returncode}; stderr={compile_proc.stderr.strip()[:300]}"
+        run_proc = run([str(binary), "-runs=1"], cwd=tmp)
+        if run_proc.returncode != 0:
+            return False, f"run returncode={run_proc.returncode}; stderr={run_proc.stderr.strip()[:300]}"
+        return True, "compile-and-run succeeded"
+
+
 def main() -> None:
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     clang = which("clang++")
@@ -75,6 +101,7 @@ def main() -> None:
     compiler = clang or gxx
     asan_ok, asan_detail = sanitizer_probe(compiler, "address")
     ubsan_ok, ubsan_detail = sanitizer_probe(compiler, "undefined")
+    fuzz_ok, fuzz_detail = fuzzing_probe(clang)
 
     lines = [
         "# Verification Toolchain Capabilities",
@@ -88,16 +115,25 @@ def main() -> None:
         f"  - Detail: {asan_detail}",
         f"- UBSAN: {'available' if ubsan_ok else 'unavailable'}",
         f"  - Detail: {ubsan_detail}",
+        f"- libFuzzer with ASAN: {'available' if fuzz_ok else 'unavailable'}",
+        f"  - Detail: {fuzz_detail}",
         f"- bazel: `{which('bazel') or 'unavailable'}`",
         f"- cmake: `{which('cmake') or 'unavailable'}`",
         f"- ninja: `{which('ninja') or 'unavailable'}`",
+        f"- codeql: `{which('codeql') or 'unavailable'}`",
+        f"- semgrep: `{which('semgrep') or 'unavailable'}`",
         f"- valgrind: `{which('valgrind') or 'unavailable'}`",
+        f"- llvm-cov: `{which('llvm-cov') or 'unavailable'}`",
+        f"- llvm-profdata: `{which('llvm-profdata') or 'unavailable'}`",
+        f"- gcov: `{which('gcov') or 'unavailable'}`",
         "",
         "## Policy",
         "",
         "- Memory-safety and undefined-behavior claims should use sanitizer output when ASAN or UBSAN is available.",
         "- If sanitizer unavailable, do not list memory-safety or undefined-behavior hypotheses unless a real target execution path still produces a runtime crash, signal, exception, or equivalent concrete failure.",
         "- If neither sanitizer nor real target execution proof exists, reject the hypothesis and record the reason in `reports/hypotheses.md`.",
+        "- When libFuzzer and coverage tooling are available, use a bounded seed corpus and record whether the target builds, executes, crashes, and reaches additional code before claiming a finding.",
+        "- When CodeQL or Semgrep is available, use its source-to-sink or taint results to expand the candidate ledger; static results remain hypotheses until a real target path verifies them.",
     ]
     REPORT.write_text("\n".join(lines) + "\n")
     print(f"wrote {REPORT}")

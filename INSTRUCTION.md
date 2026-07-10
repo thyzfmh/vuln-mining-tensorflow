@@ -20,6 +20,7 @@ Skill 名称：vuln-mining-autonomous
 - 必须生成 `reports/toolchain-capabilities.md`，记录 ASAN/UBSAN 等验证工具是否可用
 - 必须生成 `reports/verification-escalation.md`，记录 sanitizer 缺失时的替代验证路径和实际尝试
 - 不得因为 ASAN/UBSAN 不可用或目标无法从源码树直接导入就结束扫描；必须继续尝试替代真实运行入口
+- 必须生成 `reports/runtime-entrypoints.md`，把候选源码关联到现有测试、二进制、解析器或语言绑定等真实运行入口
 - 必须维护 `reports/coverage-ledger.md`，覆盖所有生成的攻击面和候选，并记录 rejected/verified 结论
 - 必须生成 `reports/scan-completion.md`，声明候选空间已耗尽且无未验证的 accepted 假设
 - 最终必须生成 `vulnerability_list.md`、`llm_chat_log.json`、`vulnerability_report.md`、`verify/run_test.py`

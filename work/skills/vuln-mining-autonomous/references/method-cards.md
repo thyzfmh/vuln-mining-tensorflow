@@ -58,3 +58,28 @@ Build the narrowest proof available:
 
 The verification output must include command, exit status, stdout, stderr, and
 the `VERIFIED` marker only for reproduced findings.
+
+## Card 6: Entrypoint And Corpus Route
+
+1. Read `reports/runtime-entrypoints.md` before generating a reproducer.
+2. Prefer an existing test target, command-line binary, parser, or language
+   binding over importing an unbuilt source tree directly.
+3. Establish one valid baseline input, then run a bounded corpus containing
+   empty, tiny, malformed, zero, negative, boundary, and overflow-adjacent
+   inputs through the same real target surface.
+4. When available, use libFuzzer or coverage tooling to rank seeds that reach
+   new code. Coverage is a prioritization signal, not runtime proof by itself.
+5. Treat an expected input-validation error as rejection evidence. Accept only
+   an unexpected crash, signal, fatal check, sanitizer finding, or other
+   concrete failure on a real target path.
+
+## Card 7: Semantic Flow Expansion
+
+1. If `reports/toolchain-capabilities.md` shows CodeQL or Semgrep is available,
+   run the applicable source-to-sink or taint rules over the full target tree.
+2. For compiled code, let semantic extraction observe the normal build rather
+   than guessing include paths or preprocessor definitions.
+3. Add every static flow result to `reports/coverage-ledger.md` as a candidate,
+   including its source, propagator, sanitizer, and sink evidence.
+4. Use those paths to select the smallest route from
+   `reports/runtime-entrypoints.md`; do not treat a static match as verified.

@@ -9,6 +9,7 @@ from __future__ import annotations
 import pathlib
 import subprocess
 import sys
+import tempfile
 import traceback
 
 REPORT = pathlib.Path("reports/verification-output.txt")
@@ -20,16 +21,18 @@ def target_source_path(*parts):
     return TARGET_ROOT.joinpath(*parts)
 
 
-def run_test(name, fn):
+def run_test(name, fn, verified_exception_markers=()):
     try:
         fn()
         RESULTS.append((name, "NO_CRASH", ""))
     except Exception as exc:
-        RESULTS.append((name, "EXCEPTION", repr(exc)))
+        detail = repr(exc)
+        status = "EXCEPTION" if any(marker in detail for marker in verified_exception_markers) else "REJECTED"
+        RESULTS.append((name, status, detail))
         traceback.print_exc()
 
 
-def run_subprocess_test(name, code):
+def run_subprocess_test(name, code, verified_error_markers=()):
     proc = subprocess.run(
         [sys.executable, "-c", code],
         text=True,
@@ -43,10 +46,11 @@ def run_subprocess_test(name, code):
     elif proc.returncode < 0:
         RESULTS.append((name, "SIGNAL", detail))
     else:
-        RESULTS.append((name, "EXCEPTION", detail))
+        status = "EXCEPTION" if any(marker in detail for marker in verified_error_markers) else "REJECTED"
+        RESULTS.append((name, status, detail))
 
 
-def run_command_test(name, argv, timeout=120, cwd=None, env=None):
+def run_command_test(name, argv, timeout=120, cwd=None, env=None, verified_error_markers=()):
     proc = subprocess.run(
         argv,
         cwd=cwd,
@@ -63,8 +67,38 @@ def run_command_test(name, argv, timeout=120, cwd=None, env=None):
         RESULTS.append((name, "SIGNAL", detail))
     else:
         crash_words = ("AddressSanitizer", "UndefinedBehaviorSanitizer", "runtime error", "Segmentation fault")
-        status = "CRASH" if any(word in detail for word in crash_words) else "EXCEPTION"
+        if any(word in detail for word in crash_words):
+            status = "CRASH"
+        elif any(marker in detail for marker in verified_error_markers):
+            status = "EXCEPTION"
+        else:
+            status = "REJECTED"
         RESULTS.append((name, status, detail))
+
+
+def run_seed_corpus(
+    name,
+    command_for_seed,
+    seeds,
+    timeout=120,
+    cwd=None,
+    env=None,
+    verified_error_markers=(),
+):
+    """Run a bounded AI-generated corpus through a real TARGET_ROOT command."""
+    with tempfile.TemporaryDirectory() as td:
+        corpus_dir = pathlib.Path(td)
+        for label, payload in seeds:
+            seed_path = corpus_dir / label
+            seed_path.write_bytes(payload)
+            run_command_test(
+                f"{name} [{label}]",
+                command_for_seed(seed_path),
+                timeout=timeout,
+                cwd=cwd,
+                env=env,
+                verified_error_markers=verified_error_markers,
+            )
 
 
 def compile_and_run_cxx_test(

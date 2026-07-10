@@ -59,6 +59,7 @@ for file in \
   "$expected_skill_dir/scripts/init_coverage_ledger.py" \
   "$expected_skill_dir/scripts/probe_verification_tools.py" \
   "$expected_skill_dir/scripts/escalate_verification_tools.py" \
+  "$expected_skill_dir/scripts/runtime_entrypoints.py" \
   "$expected_skill_dir/scripts/final_verify.py" \
   "$expected_skill_dir/scripts/self_check.sh" \
   "$expected_skill_dir/references/method-cards.md" \
@@ -77,8 +78,10 @@ python3 -m py_compile \
   "$expected_skill_dir/scripts/init_coverage_ledger.py" \
   "$expected_skill_dir/scripts/probe_verification_tools.py" \
   "$expected_skill_dir/scripts/escalate_verification_tools.py" \
+  "$expected_skill_dir/scripts/runtime_entrypoints.py" \
   "$expected_skill_dir/scripts/final_verify.py"
 rm -rf "$expected_skill_dir/scripts/__pycache__"
+python3 "$expected_skill_dir/tests/runtime_entrypoints_smoke_test.py"
 bash -n "$expected_skill_dir/scripts/self_check.sh"
 python3 -m json.tool "$expected_skill_dir/templates/llm_chat_log.json" >/dev/null
 

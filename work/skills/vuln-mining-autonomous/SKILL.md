@@ -18,6 +18,7 @@ description: Use when OpenCode is running this repository's AI vulnerability min
   - `reports/source-file-manifest.md`
   - `reports/toolchain-capabilities.md`
   - `reports/verification-escalation.md`
+  - `reports/runtime-entrypoints.md`
   - `reports/coverage-ledger.md`
   - `reports/scan-completion.md`
   - one or more `plans/scan-wave-NNN.md` files until candidate space is exhausted
@@ -47,6 +48,7 @@ normalize workspace
   -> inventory target source
   -> probe local verification toolchain
   -> prepare sanitizer and runtime fallback escalation paths
+  -> map existing real runtime entry points
   -> map attack surfaces and suspicious points
   -> extract deterministic SAST candidates
   -> seed coverage ledger and first scan wave
@@ -130,12 +132,17 @@ target, "scan all code" means:
    `reports/source-file-manifest.md`.
 2. Deterministic scripts rank every file/function that matches source, sink,
    invariant, parser, native-boundary, arithmetic, or memory-safety patterns.
-3. The LLM reviews bounded batches from the generated candidate space, with a
+3. A deterministic runtime-entrypoint map links candidates to existing tests,
+   binaries, parsers, bindings, and build targets before a custom reproducer is
+   considered.
+4. When a local semantic scanner is available, use source-to-sink or taint-flow
+   results to expand the same candidate ledger across the full target tree.
+5. The LLM reviews bounded batches from the generated candidate space, with a
    skeptic pass for every accepted hypothesis.
-4. Runtime tests are generated only for hypotheses that survive source review.
-5. Variant/family search expands from verified or accepted patterns until that
+6. Runtime tests are generated only for hypotheses that survive source review.
+7. Variant/family search expands from verified or accepted patterns until that
    family is also verified or rejected.
-6. The run finishes only when the coverage ledger proves no generated candidate
+8. The run finishes only when the coverage ledger proves no generated candidate
    or accepted hypothesis remains open.
 
 This is not a mathematical proof that no vulnerability exists in unreachable or
@@ -161,6 +168,9 @@ Guard Malloc, Python debug runtime, or another real target command.
   not stop. Try a real command-line tool, Python subprocess with adjusted
   `PYTHONPATH`, existing tests, native reproducer, parser entry point, generated
   minimal model/input, or build-system test target.
+- Read `reports/runtime-entrypoints.md` before choosing a fallback. Prefer an
+  existing test, binary, parser, module binding, or registered build target over
+  an unbuilt source-tree import.
 - Toolchain limits, sanitizer absence, and source-tree import failures are
   verification-path failures, not scan-completion reasons. Continue scanning
   other candidates and alternate runtime surfaces until a runtime-verified
@@ -231,6 +241,7 @@ Run:
 python3 work/skills/vuln-mining-autonomous/scripts/source_inventory.py
 python3 work/skills/vuln-mining-autonomous/scripts/probe_verification_tools.py
 python3 work/skills/vuln-mining-autonomous/scripts/escalate_verification_tools.py
+python3 work/skills/vuln-mining-autonomous/scripts/runtime_entrypoints.py
 python3 work/skills/vuln-mining-autonomous/scripts/attack_surface_map.py
 python3 work/skills/vuln-mining-autonomous/scripts/sast_candidates.py
 python3 work/skills/vuln-mining-autonomous/scripts/init_coverage_ledger.py
@@ -242,6 +253,7 @@ These scripts must write:
 - `reports/source-file-manifest.md`
 - `reports/toolchain-capabilities.md`
 - `reports/verification-escalation.md`
+- `reports/runtime-entrypoints.md`
 - `reports/attack-surface-map.md`
 - `reports/sast-candidates.md`
 - `reports/coverage-ledger.md`
@@ -260,6 +272,12 @@ Then write `plans/scan-wave-001.md` with:
 
 Do not keep inventory findings only in chat. Every candidate selected or
 rejected during the run must be reflected in `reports/coverage-ledger.md`.
+
+If `reports/toolchain-capabilities.md` shows CodeQL or Semgrep is available,
+run its source-to-sink or taint analysis as an additional full-tree candidate
+source. Add every resulting path to the same coverage ledger before declaring
+the candidate space exhausted. For compiled code, let semantic extraction use
+the normal project build instead of hand-written include-path guesses.
 
 ## Phase 2: LLM Review Logging
 
@@ -313,15 +331,21 @@ Required properties:
 Verification ladder:
 
 1. Try the smallest existing runtime surface: imported module, command-line tool,
-   unit test helper, or example binary already present in the validation tree.
-2. If needed, generate a small native repro under `verify/` and compile it with
+   unit test helper, registered build target, parser, language binding, or
+   example binary listed in `reports/runtime-entrypoints.md`.
+2. Establish a valid baseline and run a bounded malformed-input seed matrix
+   through that same real target surface. Record every command, seed outcome,
+   crash, and available coverage signal in `reports/verification-output.txt`.
+3. If needed, generate a small native repro under `verify/` and compile it with
    available local compilers. It must include or link target source/header files.
    Use `-fsanitize=address,undefined` when supported, and record compiler
    support or failures in `reports/verification-output.txt`.
-3. If the target accepts bytes or serialized structures, generate a bounded
+4. If the target accepts bytes or serialized structures, generate a bounded
    fuzz-style loop with empty, tiny, malformed, max-size, negative, zero, and
-   overflow-adjacent seeds. Keep runtime bounded.
-4. If the reproducer cannot execute, reject the candidate and return to Phase 2.
+   overflow-adjacent seeds. Use libFuzzer and coverage tooling when available,
+   while treating coverage as prioritization evidence rather than proof. Keep
+   runtime bounded.
+5. If the reproducer cannot execute, reject the candidate and return to Phase 2.
 
 If a runtime package or build artifact is unavailable, do not claim the bug.
 Generate a narrower test or choose another candidate.
