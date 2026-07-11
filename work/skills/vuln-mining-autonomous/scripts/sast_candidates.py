@@ -5,9 +5,13 @@ import pathlib
 import re
 from dataclasses import dataclass
 
-ROOT = pathlib.Path.cwd()
-CODE = ROOT / "code"
-REPORT = ROOT / "reports" / "sast-candidates.md"
+try:
+    from platform_assets import discover_target_root, resolve_work_root, output_path
+except ImportError:  # pragma: no cover - direct execution fallback
+    import sys
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+    from platform_assets import discover_target_root, resolve_work_root, output_path
+
 EXTS = {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx", ".cu", ".py"}
 DOMAIN_RULES = [
     ("python-api", ("python/", ".py")),
@@ -122,15 +126,11 @@ PATTERNS = [
 ]
 
 
-def detect_target() -> pathlib.Path:
-    children = [p for p in CODE.iterdir() if p.is_dir() and not p.name.startswith(".")]
-    if len(children) == 1:
-        return children[0]
-    return CODE
-
-
 def main() -> None:
-    target = detect_target()
+    target = discover_target_root()
+    work_root = resolve_work_root()
+    REPORT = output_path(work_root, "reports", "sast-candidates.md")
+
     candidates: list[tuple[int, str, list[str], list[str], list[str], list[str]]] = []
     domain_counts: dict[str, int] = {}
     for path in target.rglob("*"):
@@ -169,7 +169,6 @@ def main() -> None:
             candidates.append((score, rel, hits, examples[:10], sorted(prompt_focus), domains or ["uncategorized"]))
 
     candidates.sort(key=lambda item: (-item[0], item[1]))
-    REPORT.parent.mkdir(parents=True, exist_ok=True)
     lines = [
         "# SAST Candidate Extraction",
         "",

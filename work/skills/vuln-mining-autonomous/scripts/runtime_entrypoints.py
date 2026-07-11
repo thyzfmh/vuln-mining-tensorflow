@@ -5,9 +5,13 @@ import pathlib
 import re
 from dataclasses import dataclass
 
-ROOT = pathlib.Path.cwd()
-CODE = ROOT / "code"
-REPORT = ROOT / "reports" / "runtime-entrypoints.md"
+try:
+    from platform_assets import discover_target_root, resolve_work_root, output_path
+except ImportError:  # pragma: no cover - direct execution fallback
+    import sys
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+    from platform_assets import discover_target_root, resolve_work_root, output_path
+
 SOURCE_EXTENSIONS = {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx", ".cu", ".py"}
 BUILD_FILES = {"BUILD", "BUILD.bazel", "CMakeLists.txt"}
 
@@ -29,13 +33,6 @@ class Entrypoint:
     surface: str
     evidence: str
     verification: str
-
-
-def detect_target() -> pathlib.Path:
-    if not CODE.is_dir():
-        raise SystemExit("code/ directory is missing")
-    children = [path for path in CODE.iterdir() if path.is_dir() and not path.name.startswith(".")]
-    return children[0] if len(children) == 1 else CODE
 
 
 def relative(path: pathlib.Path, target: pathlib.Path) -> str:
@@ -152,7 +149,10 @@ def scan_build_file(path: pathlib.Path, target: pathlib.Path) -> list[Entrypoint
 
 
 def main() -> None:
-    target = detect_target()
+    target = discover_target_root()
+    work_root = resolve_work_root()
+    REPORT = output_path(work_root, "reports", "runtime-entrypoints.md")
+
     source_files = 0
     entries: list[Entrypoint] = []
     for path in target.rglob("*"):
@@ -169,7 +169,6 @@ def main() -> None:
     for entry in entries:
         by_kind[entry.kind] = by_kind.get(entry.kind, 0) + 1
 
-    REPORT.parent.mkdir(parents=True, exist_ok=True)
     lines = [
         "# Runtime Entrypoint Map",
         "",

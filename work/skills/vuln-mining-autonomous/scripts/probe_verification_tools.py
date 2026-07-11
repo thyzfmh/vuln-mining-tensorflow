@@ -7,8 +7,11 @@ import subprocess
 import sys
 import tempfile
 
-ROOT = pathlib.Path.cwd()
-REPORT = ROOT / "reports" / "toolchain-capabilities.md"
+try:
+    from platform_assets import resolve_work_root, output_path
+except ImportError:  # pragma: no cover - direct execution fallback
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+    from platform_assets import resolve_work_root, output_path
 
 
 def which(name: str) -> str:
@@ -106,7 +109,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t*, size_t) { return 0; }
 
 
 def main() -> None:
-    REPORT.parent.mkdir(parents=True, exist_ok=True)
+    work_root = resolve_work_root()
+    REPORT = output_path(work_root, "reports", "toolchain-capabilities.md")
+
     clang = which("clang++")
     gxx = which("g++")
     npm = which("npm")

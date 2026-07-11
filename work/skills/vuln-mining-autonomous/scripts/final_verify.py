@@ -1,12 +1,30 @@
 #!/usr/bin/env python3
+"""Final verification gate.
+
+Runs against the ``work/`` output root and an externally supplied target root.
+
+Usage::
+
+    python3 final_verify.py [--work-root <path>] [--target-root <path>]
+
+Defaults:
+  --work-root   <repo>/work
+  --target-root discovered by platform_assets.discover_target_root()
+"""
 from __future__ import annotations
 
+import argparse
 import json
 import pathlib
 import re
 import sys
 
-ROOT = pathlib.Path.cwd()
+try:
+    from platform_assets import discover_target_root, resolve_work_root, target_blacklist_names, REPO_ROOT
+except ImportError:  # pragma: no cover - direct execution fallback
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+    from platform_assets import discover_target_root, resolve_work_root, target_blacklist_names, REPO_ROOT
+
 FAILURES: list[str] = []
 SIMULATION_MARKERS = [
     "toy snippet",
@@ -32,20 +50,24 @@ PREMATURE_STOP_PATTERNS = [
     r"(because of|due to).{0,40}(toolchain|asan|ubsan|source-tree import).{0,80}(no|zero|0).{0,40}(verified|runtime)",
 ]
 
+# Module-level globals set by main() / parse_args
+WORK_ROOT: pathlib.Path = pathlib.Path()
+TARGET_ROOT: pathlib.Path = pathlib.Path()
+
 
 def fail(message: str) -> None:
     FAILURES.append(message)
 
 
-def require_file(path: str) -> pathlib.Path:
-    p = ROOT / path
+def require_file(rel: str) -> pathlib.Path:
+    p = WORK_ROOT / rel
     if not p.is_file():
-        fail(f"missing required file: {path}")
+        fail(f"missing required file: {rel}")
     return p
 
 
-def text(path: str) -> str:
-    p = require_file(path)
+def text(rel: str) -> str:
+    p = require_file(rel)
     return p.read_text(errors="replace") if p.is_file() else ""
 
 
@@ -132,12 +154,9 @@ def verify_chat_log() -> None:
         r"known\s+vulnerability",
         "\u5df2\u77e5\u6f0f\u6d1e",
     ]
-    code_dir = ROOT / "code"
-    if code_dir.is_dir():
-        for child in code_dir.iterdir():
-            if child.is_dir() and not child.name.startswith("."):
-                name = re.escape(child.name.lower())
-                forbidden.append(rf"(?<![a-z0-9_]){name}(?![a-z0-9_])")
+    for name in target_blacklist_names(TARGET_ROOT):
+        escaped = re.escape(name.lower())
+        forbidden.append(rf"(?<![a-z0-9_]){escaped}(?![a-z0-9_])")
     for pattern in forbidden:
         if re.search(pattern, content):
             fail(f"llm_chat_log.json contains black-box forbidden pattern: {pattern}")
@@ -335,7 +354,7 @@ def verify_coverage_ledger() -> None:
 
 
 def verify_scan_waves() -> None:
-    wave_files = sorted((ROOT / "plans").glob("scan-wave-*.md"))
+    wave_files = sorted((WORK_ROOT / "plans").glob("scan-wave-*.md"))
     if not wave_files:
         fail("plans/ must contain at least scan-wave-001.md")
         return
@@ -343,7 +362,7 @@ def verify_scan_waves() -> None:
         body = path.read_text(errors="replace").lower()
         for item in ["target_root", "source", "sink", "sanitizer", "prompt", "test"]:
             if item not in body:
-                fail(f"{path.relative_to(ROOT)} missing expected scan planning field: {item}")
+                fail(f"{path.relative_to(WORK_ROOT)} missing expected scan planning field: {item}")
 
 
 def verify_scan_completion() -> None:
@@ -423,6 +442,19 @@ def verify_result_output() -> None:
 
 
 def main() -> int:
+    global WORK_ROOT, TARGET_ROOT
+
+    parser = argparse.ArgumentParser(description="Final verification gate for the vulnerability mining competition.")
+    parser.add_argument("--work-root", default=None, help="path to the work output root (default: <repo>/work)")
+    parser.add_argument("--target-root", default=None, help="path to the target source tree (default: auto-discovered)")
+    args = parser.parse_args()
+
+    WORK_ROOT = resolve_work_root(args.work_root)
+    TARGET_ROOT = discover_target_root(args.target_root)
+
+    print(f"[final_verify] WORK_ROOT={WORK_ROOT}")
+    print(f"[final_verify] TARGET_ROOT={TARGET_ROOT}")
+
     verify_chat_log()
     verify_method_artifacts()
     verify_vulnerability_list()

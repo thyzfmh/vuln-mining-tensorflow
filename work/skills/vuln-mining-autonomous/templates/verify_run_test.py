@@ -2,18 +2,32 @@
 """AI-generated vulnerability verification script.
 
 The OpenCode run must replace this template with concrete AI-generated tests.
+All output paths are relative to WORK_ROOT (default: work/).
+TARGET_ROOT is resolved from the persisted work context, with environment and
+code/ fallbacks for explicit local tests.
 """
 
 from __future__ import annotations
 
+import os
 import pathlib
 import subprocess
 import sys
 import tempfile
 import traceback
 
-REPORT = pathlib.Path("reports/verification-output.txt")
-TARGET_ROOT = pathlib.Path("code")
+WORK_ROOT = pathlib.Path(os.environ.get("VULN_WORK_ROOT", os.environ.get("WORK_ROOT", "work")))
+REPORT = WORK_ROOT / "reports" / "verification-output.txt"
+TARGET_CONTEXT = WORK_ROOT / ".vuln-mining-target-root"
+TARGET_ROOT = pathlib.Path(
+    os.environ.get(
+        "VULN_TARGET_ROOT",
+        os.environ.get(
+            "TARGET_ROOT",
+            TARGET_CONTEXT.read_text().strip() if TARGET_CONTEXT.is_file() else "code",
+        ),
+    )
+)
 RESULTS: list[tuple[str, str, str]] = []
 
 
@@ -112,7 +126,7 @@ def compile_and_run_cxx_test(
     extra_flags = extra_flags or []
     include_paths = include_paths or [TARGET_ROOT]
     compiler = "clang++"
-    binary = pathlib.Path("verify") / f"{pathlib.Path(source_path).stem}.bin"
+    binary = WORK_ROOT / "verify" / f"{pathlib.Path(source_path).stem}.bin"
     flags = ["-std=c++17", "-O1", "-g", "-fno-omit-frame-pointer"]
     sanitize_flags = ["-fsanitize=address,undefined"]
     include_flags = [flag for include_path in include_paths for flag in ("-I", str(include_path))]

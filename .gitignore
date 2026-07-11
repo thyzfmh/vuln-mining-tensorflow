@@ -6,13 +6,15 @@
 __pycache__
 .env
 
-# Runtime-generated reports and plans
-/reports/
-/plans/
+# Runtime-generated reports and plans (under work/)
+/work/reports/
+/work/plans/
 
-# Runtime-generated deliverables
-/vulnerability_list.md
-/llm_chat_log.json
-/vulnerability_report.md
-/verify/
-/acceptance-plan.yaml
+# Runtime-generated deliverables (under work/)
+/work/vulnerability_list.md
+/work/llm_chat_log.json
+/work/vulnerability_report.md
+/work/verify/
+/work/result/
+/work/acceptance-plan.yaml
+/work/.vuln-mining-target-root

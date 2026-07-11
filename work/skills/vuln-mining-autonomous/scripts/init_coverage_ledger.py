@@ -4,11 +4,12 @@ from __future__ import annotations
 import pathlib
 import re
 
-ROOT = pathlib.Path.cwd()
-ATTACK_MAP = ROOT / "reports" / "attack-surface-map.md"
-SAST_CANDIDATES = ROOT / "reports" / "sast-candidates.md"
-NPM_AST_CANDIDATES = ROOT / "reports" / "npm-ast-candidates.md"
-LEDGER = ROOT / "reports" / "coverage-ledger.md"
+try:
+    from platform_assets import resolve_work_root, output_path
+except ImportError:  # pragma: no cover - direct execution fallback
+    import sys
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+    from platform_assets import resolve_work_root, output_path
 
 
 def parse_candidate_report(path: pathlib.Path, missing_message: str) -> list[tuple[str, str]]:
@@ -33,17 +34,21 @@ def parse_candidate_report(path: pathlib.Path, missing_message: str) -> list[tup
     return entries
 
 
-def merged_candidates() -> list[tuple[str, str]]:
+def merged_candidates(work_root: pathlib.Path) -> list[tuple[str, str]]:
+    attack_map = output_path(work_root, "reports", "attack-surface-map.md")
+    sast_candidates = output_path(work_root, "reports", "sast-candidates.md")
+    npm_ast_candidates = output_path(work_root, "reports", "npm-ast-candidates.md")
+
     merged: dict[str, set[str]] = {}
     ordered: list[str] = []
     for path, domain in parse_candidate_report(
-        ATTACK_MAP,
+        attack_map,
         "reports/attack-surface-map.md is missing; run attack_surface_map.py first",
     ) + parse_candidate_report(
-        SAST_CANDIDATES,
+        sast_candidates,
         "reports/sast-candidates.md is missing; run sast_candidates.py first",
     ) + parse_candidate_report(
-        NPM_AST_CANDIDATES,
+        npm_ast_candidates,
         "reports/npm-ast-candidates.md is missing; run npm_ast_candidates.py first",
     ):
         if path not in merged:
@@ -57,9 +62,11 @@ def merged_candidates() -> list[tuple[str, str]]:
 
 
 def main() -> None:
-    entries = merged_candidates()
+    work_root = resolve_work_root()
+    LEDGER = output_path(work_root, "reports", "coverage-ledger.md")
+
+    entries = merged_candidates(work_root)
     minimum = len(entries)
-    LEDGER.parent.mkdir(parents=True, exist_ok=True)
     if LEDGER.exists():
         print(f"kept existing {LEDGER}")
         return

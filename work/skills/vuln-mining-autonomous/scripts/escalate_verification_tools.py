@@ -8,9 +8,11 @@ import subprocess
 import sys
 import tempfile
 
-ROOT = pathlib.Path.cwd()
-REPORT = ROOT / "reports" / "verification-escalation.md"
-CODE = ROOT / "code"
+try:
+    from platform_assets import discover_target_root, resolve_work_root, output_path
+except ImportError:  # pragma: no cover - direct execution fallback
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+    from platform_assets import discover_target_root, resolve_work_root, output_path
 
 COMMON_COMPILERS = [
     "clang++",
@@ -70,14 +72,14 @@ int main() {
         return run_proc.returncode == 0, f"argv={cmd}; run_returncode={run_proc.returncode}; stderr={run_proc.stderr.strip()[:500]}"
 
 
-def detect_build_systems() -> list[str]:
+def detect_build_systems(target: pathlib.Path) -> list[str]:
     systems: list[str] = []
-    roots = [CODE]
-    roots.extend([p for p in CODE.iterdir() if p.is_dir() and not p.name.startswith(".")] if CODE.is_dir() else [])
+    roots = [target]
+    roots.extend([p for p in target.iterdir() if p.is_dir() and not p.name.startswith(".")])
     for root in roots:
         if not root.exists():
             continue
-        rel = "TARGET_ROOT" if root == CODE else f"TARGET_ROOT/{root.name}"
+        rel = "TARGET_ROOT" if root == target else f"TARGET_ROOT/{root.name}"
         checks = [
             ("Bazel", ["WORKSPACE", "WORKSPACE.bazel", "MODULE.bazel", "BUILD", "BUILD.bazel"]),
             ("CMake", ["CMakeLists.txt"]),
@@ -101,7 +103,10 @@ def available_runtime_alternatives() -> list[str]:
 
 
 def main() -> None:
-    REPORT.parent.mkdir(parents=True, exist_ok=True)
+    target = discover_target_root()
+    work_root = resolve_work_root()
+    REPORT = output_path(work_root, "reports", "verification-escalation.md")
+
     compilers = compiler_candidates()
     sanitizer_attempts: list[tuple[str, str, bool, str]] = []
     for compiler in compilers:
@@ -114,7 +119,7 @@ def main() -> None:
             sanitizer_attempts.append((compiler, name, ok, detail))
 
     any_sanitizer = any(ok for _, _, ok, _ in sanitizer_attempts)
-    build_systems = detect_build_systems()
+    build_systems = detect_build_systems(target)
     alternatives = available_runtime_alternatives()
 
     lines = [

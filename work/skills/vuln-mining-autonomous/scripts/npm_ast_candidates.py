@@ -8,9 +8,13 @@ import subprocess
 from collections import defaultdict
 from dataclasses import dataclass
 
-ROOT = pathlib.Path.cwd()
-CODE = ROOT / "code"
-REPORT = ROOT / "reports" / "npm-ast-candidates.md"
+try:
+    from platform_assets import discover_target_root, resolve_work_root, output_path
+except ImportError:  # pragma: no cover - direct execution fallback
+    import sys
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+    from platform_assets import discover_target_root, resolve_work_root, output_path
+
 AST_GREP_PACKAGE = "@ast-grep/cli@0.44.1"
 
 
@@ -35,13 +39,6 @@ RULES = [
     Rule("python-import", "Python", "__import__($MODULE)", "python", "untrusted input reaching dynamic import"),
     Rule("python-ctypes", "Python", "ctypes.CDLL($LIB)", "boundary", "untrusted path reaching native-library loading"),
 ]
-
-
-def detect_target() -> pathlib.Path:
-    if not CODE.is_dir():
-        raise SystemExit("code/ directory is missing")
-    children = [path for path in CODE.iterdir() if path.is_dir() and not path.name.startswith(".")]
-    return children[0] if len(children) == 1 else CODE
 
 
 def run(argv: list[str], timeout: int = 300) -> subprocess.CompletedProcess[str]:
@@ -97,8 +94,9 @@ def parse_match(line: str, target: pathlib.Path) -> tuple[str, int, str, str] | 
 
 
 def main() -> None:
-    target = detect_target().resolve()
-    REPORT.parent.mkdir(parents=True, exist_ok=True)
+    target = discover_target_root().resolve()
+    work_root = resolve_work_root()
+    REPORT = output_path(work_root, "reports", "npm-ast-candidates.md")
     prefix, source = scanner_prefix()
     files = source_file_count(target)
     lines = [

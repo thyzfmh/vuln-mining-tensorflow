@@ -4,9 +4,13 @@ from __future__ import annotations
 import pathlib
 import re
 
-ROOT = pathlib.Path.cwd()
-CODE = ROOT / "code"
-REPORT = ROOT / "reports" / "attack-surface-map.md"
+try:
+    from platform_assets import discover_target_root, resolve_work_root, output_path
+except ImportError:  # pragma: no cover - direct execution fallback
+    import sys
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+    from platform_assets import discover_target_root, resolve_work_root, output_path
+
 EXTS = {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx", ".cu", ".py"}
 
 PATH_KEYWORDS = {
@@ -60,15 +64,6 @@ DOMAIN_RULES = [
 ]
 
 
-def detect_target() -> pathlib.Path:
-    if not CODE.exists():
-        raise SystemExit("code/ directory is missing")
-    children = [p for p in CODE.iterdir() if p.is_dir() and not p.name.startswith(".")]
-    if len(children) == 1:
-        return children[0]
-    return CODE
-
-
 def matching_lines(text: str, pattern: re.Pattern[str], limit: int = 3) -> list[str]:
     lines: list[str] = []
     for number, line in enumerate(text.splitlines(), start=1):
@@ -82,7 +77,10 @@ def matching_lines(text: str, pattern: re.Pattern[str], limit: int = 3) -> list[
 
 
 def main() -> None:
-    target = detect_target()
+    target = discover_target_root()
+    work_root = resolve_work_root()
+    REPORT = output_path(work_root, "reports", "attack-surface-map.md")
+
     entries: list[tuple[int, str, list[str], list[str], list[str]]] = []
     domain_counts: dict[str, int] = {}
     for path in target.rglob("*"):
@@ -118,7 +116,6 @@ def main() -> None:
             entries.append((score, rel, reasons[:10], examples[:8], domains or ["uncategorized"]))
 
     entries.sort(key=lambda item: (-item[0], item[1]))
-    REPORT.parent.mkdir(parents=True, exist_ok=True)
     lines = [
         "# Attack Surface Map",
         "",
