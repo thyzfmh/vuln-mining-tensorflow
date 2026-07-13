@@ -31,6 +31,16 @@ TARGET_ROOT = pathlib.Path(
 RESULTS: list[tuple[str, str, str]] = []
 
 
+def child_env(overrides=None):
+    temp_root = WORK_ROOT / "verify" / ".tmp"
+    temp_root.mkdir(parents=True, exist_ok=True)
+    env = os.environ.copy()
+    if overrides:
+        env.update(overrides)
+    env["TMPDIR"] = str(temp_root)
+    return env
+
+
 def target_source_path(*parts):
     return TARGET_ROOT.joinpath(*parts)
 
@@ -46,29 +56,20 @@ def run_test(name, fn, verified_exception_markers=()):
         traceback.print_exc()
 
 
-def run_subprocess_test(name, code, verified_error_markers=()):
-    proc = subprocess.run(
-        [sys.executable, "-c", code],
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        timeout=60,
+def run_python_file_test(name, script_path, verified_error_markers=()):
+    run_command_test(
+        name,
+        [sys.executable, str(script_path)],
+        verified_error_markers=verified_error_markers,
     )
-    detail = f"returncode={proc.returncode}\nstdout={proc.stdout}\nstderr={proc.stderr}"
-    if proc.returncode == 0:
-        RESULTS.append((name, "NO_CRASH", detail))
-    elif proc.returncode < 0:
-        RESULTS.append((name, "SIGNAL", detail))
-    else:
-        status = "EXCEPTION" if any(marker in detail for marker in verified_error_markers) else "REJECTED"
-        RESULTS.append((name, status, detail))
 
 
 def run_command_test(name, argv, timeout=120, cwd=None, env=None, verified_error_markers=()):
     proc = subprocess.run(
         argv,
         cwd=cwd,
-        env=env,
+        env=child_env(env),
+        stdin=subprocess.DEVNULL,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -100,7 +101,9 @@ def run_seed_corpus(
     verified_error_markers=(),
 ):
     """Run a bounded AI-generated corpus through a real TARGET_ROOT command."""
-    with tempfile.TemporaryDirectory() as td:
+    temp_root = WORK_ROOT / "verify" / ".tmp"
+    temp_root.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=temp_root) as td:
         corpus_dir = pathlib.Path(td)
         for label, payload in seeds:
             seed_path = corpus_dir / label
@@ -131,7 +134,15 @@ def compile_and_run_cxx_test(
     sanitize_flags = ["-fsanitize=address,undefined"]
     include_flags = [flag for include_path in include_paths for flag in ("-I", str(include_path))]
     compile_cmd = [compiler, *flags, *sanitize_flags, *include_flags, *extra_flags, str(source_path), "-o", str(binary)]
-    compile_proc = subprocess.run(compile_cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout)
+    compile_proc = subprocess.run(
+        compile_cmd,
+        env=child_env(),
+        stdin=subprocess.DEVNULL,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=timeout,
+    )
     if compile_proc.returncode != 0:
         sanitizer_detail = (
             "sanitizer unavailable\n"
@@ -143,6 +154,8 @@ def compile_and_run_cxx_test(
         fallback_cmd = [compiler, *flags, *include_flags, *extra_flags, str(source_path), "-o", str(binary)]
         fallback_proc = subprocess.run(
             fallback_cmd,
+            env=child_env(),
+            stdin=subprocess.DEVNULL,
             text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

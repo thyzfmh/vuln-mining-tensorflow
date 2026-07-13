@@ -90,7 +90,8 @@ for file in \
   "$expected_skill_dir/templates/llm_chat_log.json" \
   "$expected_skill_dir/templates/vulnerability_list.md" \
   "$expected_skill_dir/templates/vulnerability_report.md" \
-  "$expected_skill_dir/templates/verify_run_test.py"
+  "$expected_skill_dir/templates/verify_run_test.py" \
+  "$expected_skill_dir/tests/noninteractive_execution_test.py"
 do
   [ -f "$file" ] || fail "missing skill resource: ${file#$ROOT/}"
 done
@@ -106,7 +107,9 @@ python3 -m py_compile \
   "$expected_skill_dir/scripts/probe_verification_tools.py" \
   "$expected_skill_dir/scripts/escalate_verification_tools.py" \
   "$expected_skill_dir/scripts/runtime_entrypoints.py" \
-  "$expected_skill_dir/scripts/final_verify.py"
+  "$expected_skill_dir/scripts/final_verify.py" \
+  "$expected_skill_dir/templates/verify_run_test.py" \
+  "$expected_skill_dir/tests/noninteractive_execution_test.py"
 rm -rf "$expected_skill_dir/scripts/__pycache__"
 
 # Run tests
@@ -115,6 +118,7 @@ python3 "$expected_skill_dir/tests/work_output_layout_test.py"
 python3 "$expected_skill_dir/tests/runtime_entrypoints_smoke_test.py"
 python3 "$expected_skill_dir/tests/platform_execution_smoke_test.py"
 python3 "$expected_skill_dir/tests/submission_archive_test.py"
+python3 "$expected_skill_dir/tests/noninteractive_execution_test.py"
 
 bash -n "$expected_skill_dir/scripts/self_check.sh"
 python3 -m json.tool "$expected_skill_dir/templates/llm_chat_log.json" >/dev/null

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import os
 import pathlib
 import shutil
 import subprocess
@@ -19,9 +20,14 @@ def which(name: str) -> str:
 
 
 def run(argv: list[str], cwd: pathlib.Path | None = None, timeout: int = 30) -> subprocess.CompletedProcess[str]:
+    env = None
+    if cwd is not None:
+        env = {**os.environ, "TMPDIR": str(cwd)}
     return subprocess.run(
         argv,
         cwd=cwd,
+        env=env,
+        stdin=subprocess.DEVNULL,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -51,7 +57,7 @@ def tool_version(tool: str) -> str:
     return first[0] if first else f"returncode={proc.returncode}"
 
 
-def sanitizer_probe(compiler: str, sanitizer: str) -> tuple[bool, str]:
+def sanitizer_probe(compiler: str, sanitizer: str, temp_root: pathlib.Path) -> tuple[bool, str]:
     if not compiler:
         return False, "compiler unavailable"
     source = r"""
@@ -61,7 +67,7 @@ int main() {
   return x - y;
 }
 """
-    with tempfile.TemporaryDirectory() as td:
+    with tempfile.TemporaryDirectory(dir=temp_root) as td:
         tmp = pathlib.Path(td)
         src = tmp / "probe.cc"
         binary = tmp / "probe"
@@ -82,7 +88,7 @@ int main() {
         return True, "compile-and-run succeeded"
 
 
-def fuzzing_probe(compiler: str) -> tuple[bool, str]:
+def fuzzing_probe(compiler: str, temp_root: pathlib.Path) -> tuple[bool, str]:
     if not compiler:
         return False, "compiler unavailable"
     source = r"""
@@ -90,7 +96,7 @@ def fuzzing_probe(compiler: str) -> tuple[bool, str]:
 #include <cstdint>
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t*, size_t) { return 0; }
 """
-    with tempfile.TemporaryDirectory() as td:
+    with tempfile.TemporaryDirectory(dir=temp_root) as td:
         tmp = pathlib.Path(td)
         src = tmp / "probe.cc"
         binary = tmp / "probe"
@@ -111,15 +117,17 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t*, size_t) { return 0; }
 def main() -> None:
     work_root = resolve_work_root()
     REPORT = output_path(work_root, "reports", "toolchain-capabilities.md")
+    temp_root = work_root / "verify" / ".tmp"
+    temp_root.mkdir(parents=True, exist_ok=True)
 
     clang = which("clang++")
     gxx = which("g++")
     npm = which("npm")
     npx = which("npx")
     compiler = clang or gxx
-    asan_ok, asan_detail = sanitizer_probe(compiler, "address")
-    ubsan_ok, ubsan_detail = sanitizer_probe(compiler, "undefined")
-    fuzz_ok, fuzz_detail = fuzzing_probe(clang)
+    asan_ok, asan_detail = sanitizer_probe(compiler, "address", temp_root)
+    ubsan_ok, ubsan_detail = sanitizer_probe(compiler, "undefined", temp_root)
+    fuzz_ok, fuzz_detail = fuzzing_probe(clang, temp_root)
 
     lines = [
         "# Verification Toolchain Capabilities",

@@ -30,6 +30,20 @@ description: Use when OpenCode is running this repository's AI vulnerability min
 Do not ask the user questions. Keep scanning, testing, rejecting false positives,
 and re-scanning until the final gate passes.
 
+## Unattended Execution Contract
+
+- Never request approval or wait for human input.
+- Keep every write, generated test, build artifact, corpus, and scratch file
+  under the current executor workspace, normally `work/verify/.tmp`.
+- Do not use `sudo`, global package installation, interactive installers,
+  inline Python commands, or shell commands that change into a system
+  temporary directory.
+- Launch subprocesses with standard input closed. Use `npx --yes` plus CI-mode
+  environment variables; if network or package bootstrap fails, record that
+  path as unavailable and continue with the other candidate sources.
+- Existing target binaries, compilers, tests, and build tools may run only as
+  non-interactive child processes with explicit timeouts.
+
 ## Platform Asset Discovery
 
 Run the entry orchestrator first. It scans the platform asset root

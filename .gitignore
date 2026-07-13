@@ -10,3 +10,5 @@ __pycache__
 /work/acceptance-plan.yaml
 /work/.vuln-mining-target-root
 /work/verify/*.bin
+/work/verify/.tmp/
+/work/verify/.npm-cache/

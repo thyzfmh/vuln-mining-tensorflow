@@ -27,10 +27,13 @@ def run(argv: list[str], cwd: pathlib.Path | None = None, env: dict[str, str] | 
     merged_env = os.environ.copy()
     if env:
         merged_env.update(env)
+    if cwd is not None:
+        merged_env["TMPDIR"] = str(cwd)
     return subprocess.run(
         argv,
         cwd=cwd,
         env=merged_env,
+        stdin=subprocess.DEVNULL,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -47,7 +50,7 @@ def compiler_candidates() -> list[str]:
     return found
 
 
-def sanitizer_probe(compiler: str, flags: list[str]) -> tuple[bool, str]:
+def sanitizer_probe(compiler: str, flags: list[str], temp_root: pathlib.Path) -> tuple[bool, str]:
     source = r"""
 #include <cstddef>
 int main() {
@@ -56,7 +59,7 @@ int main() {
   return static_cast<int>(x - y);
 }
 """
-    with tempfile.TemporaryDirectory() as td:
+    with tempfile.TemporaryDirectory(dir=temp_root) as td:
         tmp = pathlib.Path(td)
         src = tmp / "probe.cc"
         out = tmp / "probe"
@@ -106,6 +109,8 @@ def main() -> None:
     target = discover_target_root()
     work_root = resolve_work_root()
     REPORT = output_path(work_root, "reports", "verification-escalation.md")
+    temp_root = work_root / "verify" / ".tmp"
+    temp_root.mkdir(parents=True, exist_ok=True)
 
     compilers = compiler_candidates()
     sanitizer_attempts: list[tuple[str, str, bool, str]] = []
@@ -115,7 +120,7 @@ def main() -> None:
             ("UBSAN", ["-fsanitize=undefined"]),
             ("ASAN+UBSAN", ["-fsanitize=address,undefined"]),
         ]:
-            ok, detail = sanitizer_probe(compiler, flags)
+            ok, detail = sanitizer_probe(compiler, flags, temp_root)
             sanitizer_attempts.append((compiler, name, ok, detail))
 
     any_sanitizer = any(ok for _, _, ok, _ in sanitizer_attempts)

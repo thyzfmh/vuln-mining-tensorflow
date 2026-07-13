@@ -10,16 +10,18 @@ Skill 名称：vuln-mining-autonomous
 
 ## 环境准备
 
-平台会把提交包挂载为只读目录。执行器必须先把整个提交包复制到自己的可写工作区，再从副本运行：
+平台会把提交包挂载为只读目录，并为每次执行提供一个可写的 `executor_N` 工作目录。先把当前目录设置为该执行器工作目录，再从相邻的只读 `package` 复制提交包：
 
 ```bash
-PACKAGE_ROOT="$(pwd -P)"
-RUN_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/vuln-mining-run.XXXXXX")"
-cp -R "$PACKAGE_ROOT/." "$RUN_ROOT/"
-cd "$RUN_ROOT"
+EXECUTOR_ROOT="$(pwd -P)"
+PACKAGE_ROOT="${PACKAGE_ROOT:-$(dirname "$EXECUTOR_ROOT")/package}"
+test -w "$EXECUTOR_ROOT"
+test -f "$PACKAGE_ROOT/INSTRUCTION.md"
+test "$EXECUTOR_ROOT" != "$PACKAGE_ROOT"
+cp -R "$PACKAGE_ROOT/." "$EXECUTOR_ROOT/"
 ```
 
-后续所有命令都在 `$RUN_ROOT` 中执行。不得尝试修改只读的 `$PACKAGE_ROOT`。
+后续所有命令都在 `$EXECUTOR_ROOT` 中执行。不得切换到系统临时目录、不得写出执行器工作区、不得尝试修改只读的 `$PACKAGE_ROOT`。
 
 ## 执行方式
 
@@ -37,12 +39,12 @@ python3 work/skills/vuln-mining-autonomous/scripts/final_verify.py --work-root w
 
 仅 `FINAL_VERIFY_PASS` 可视为完成。最终结果从可写副本的以下路径获取：
 
-- `$RUN_ROOT/work/vulnerability_list.md`
-- `$RUN_ROOT/work/llm_chat_log.json`
-- `$RUN_ROOT/work/vulnerability_report.md`
-- `$RUN_ROOT/work/verify/run_test.py`
-- `$RUN_ROOT/work/reports/`
-- `$RUN_ROOT/work/result/output.md`
+- `$EXECUTOR_ROOT/work/vulnerability_list.md`
+- `$EXECUTOR_ROOT/work/llm_chat_log.json`
+- `$EXECUTOR_ROOT/work/vulnerability_report.md`
+- `$EXECUTOR_ROOT/work/verify/run_test.py`
+- `$EXECUTOR_ROOT/work/reports/`
+- `$EXECUTOR_ROOT/work/result/output.md`
 
 执行规则：
 
@@ -51,6 +53,7 @@ python3 work/skills/vuln-mining-autonomous/scripts/final_verify.py --work-root w
 - 所有运行时产物（reports、plans、verify、deliverables、result）写入 `work/` 输出根目录（环境变量 `VULN_WORK_ROOT` / `WORK_ROOT`、`--work-root` 参数，默认 `<repo>/work`）
 - 提交包已预置全部评分 `key_paths`；其中 `BOOTSTRAP_PENDING` 仅用于保证只读提交包可取件，入口编排器会刷新这些初始文件，最终门禁不会接受未执行状态
 - 不询问用户，不中断执行
+- 全程无人值守：不得请求授权，不得使用 `sudo`、交互式安装、内联 Python 命令或执行器工作区外的写路径；子进程必须关闭标准输入
 - 严格黑盒：不得在 LLM 交互记录中透露项目身份、版本、预置答案或外部漏洞库信息
 - 所有测试必须由 AI 生成
 - 只接受运行时验证通过的真实漏洞

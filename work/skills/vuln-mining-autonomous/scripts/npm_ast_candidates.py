@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 import shutil
 import subprocess
@@ -41,9 +42,21 @@ RULES = [
 ]
 
 
-def run(argv: list[str], timeout: int = 300) -> subprocess.CompletedProcess[str]:
+def run(argv: list[str], timeout: int = 300, env_overrides: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
+    env = os.environ.copy()
+    env.update({
+        "CI": "1",
+        "npm_config_yes": "true",
+        "npm_config_update_notifier": "false",
+        "npm_config_fund": "false",
+        "npm_config_audit": "false",
+    })
+    if env_overrides:
+        env.update(env_overrides)
     return subprocess.run(
         argv,
+        env=env,
+        stdin=subprocess.DEVNULL,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -97,6 +110,11 @@ def main() -> None:
     target = discover_target_root().resolve()
     work_root = resolve_work_root()
     REPORT = output_path(work_root, "reports", "npm-ast-candidates.md")
+    temp_root = work_root / "verify" / ".tmp"
+    npm_cache = work_root / "verify" / ".npm-cache"
+    temp_root.mkdir(parents=True, exist_ok=True)
+    npm_cache.mkdir(parents=True, exist_ok=True)
+    child_env = {"TMPDIR": str(temp_root), "npm_config_cache": str(npm_cache)}
     prefix, source = scanner_prefix()
     files = source_file_count(target)
     lines = [
@@ -117,7 +135,7 @@ def main() -> None:
         return
 
     try:
-        version = run([*prefix, "--version"], timeout=120)
+        version = run([*prefix, "--version"], timeout=120, env_overrides=child_env)
     except Exception as exc:  # pragma: no cover - external tool failure report
         lines.extend([
             "- Scanner status: unavailable",
@@ -150,7 +168,7 @@ def main() -> None:
             "--no-ignore",
             "vcs",
             str(target),
-        ])
+        ], env_overrides=child_env)
     except Exception as exc:  # pragma: no cover - external tool failure report
         scan = None
         failure = f"scanner error={exc!r}"
