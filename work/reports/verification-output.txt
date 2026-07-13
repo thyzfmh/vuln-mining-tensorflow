@@ -1,0 +1,3 @@
+# Verification Output
+
+BOOTSTRAP_PENDING: runtime verification has not executed against `TARGET_ROOT`.

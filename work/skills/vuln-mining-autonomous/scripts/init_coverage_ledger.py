@@ -67,7 +67,7 @@ def main() -> None:
 
     entries = merged_candidates(work_root)
     minimum = len(entries)
-    if LEDGER.exists():
+    if LEDGER.exists() and "bootstrap-state: pending" not in LEDGER.read_text(errors="replace"):
         print(f"kept existing {LEDGER}")
         return
 

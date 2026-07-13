@@ -6,15 +6,7 @@
 __pycache__
 .env
 
-# Runtime-generated reports and plans (under work/)
-/work/reports/
-/work/plans/
-
-# Runtime-generated deliverables (under work/)
-/work/vulnerability_list.md
-/work/llm_chat_log.json
-/work/vulnerability_report.md
-/work/verify/
-/work/result/
+# Local runtime state that must not enter the submission archive
 /work/acceptance-plan.yaml
 /work/.vuln-mining-target-root
+/work/verify/*.bin

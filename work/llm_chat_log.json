@@ -1,0 +1,8 @@
+{
+  "metadata": {
+    "llm_model_used": "BOOTSTRAP_PENDING",
+    "total_turns": 0,
+    "system_prompt": "Use only source evidence provided under TARGET_ROOT. Preserve the complete interaction and generate runtime tests for accepted hypotheses."
+  },
+  "chat_history": []
+}

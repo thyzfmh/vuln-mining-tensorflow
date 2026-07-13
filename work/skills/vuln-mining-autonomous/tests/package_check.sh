@@ -40,6 +40,9 @@ instruction_text="$(cat "$ROOT/INSTRUCTION.md")"
 assert_contains "$instruction_text" "work/skills/vuln-mining-autonomous/SKILL.md"
 assert_contains "$instruction_text" "Skill 名称：vuln-mining-autonomous"
 assert_contains "$instruction_text" "VULN_TARGET_ROOT"
+assert_contains "$instruction_text" "只读目录"
+assert_contains "$instruction_text" "cp -R"
+assert_contains "$instruction_text" 'FINAL_VERIFY_PASS'
 
 agents_text="$(cat "$ROOT/AGENTS.md")"
 assert_contains "$agents_text" "work/"
@@ -111,6 +114,7 @@ python3 "$expected_skill_dir/tests/platform_asset_discovery_test.py"
 python3 "$expected_skill_dir/tests/work_output_layout_test.py"
 python3 "$expected_skill_dir/tests/runtime_entrypoints_smoke_test.py"
 python3 "$expected_skill_dir/tests/platform_execution_smoke_test.py"
+python3 "$expected_skill_dir/tests/submission_archive_test.py"
 
 bash -n "$expected_skill_dir/scripts/self_check.sh"
 python3 -m json.tool "$expected_skill_dir/templates/llm_chat_log.json" >/dev/null
